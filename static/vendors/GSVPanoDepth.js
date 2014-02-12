@@ -148,6 +148,43 @@ GSVPANO.PanoDepthLoader = function (parameters) {
         };
     }
 
+    this.computeNormalMap = function(header, indices, planes) {
+
+      var normalMap = null,
+        x, y,
+        planeIdx,
+        w = header.width, h = header.height,
+        plane, t, p, pointer;
+
+      normalMap = new Float32Array(w*h*3);
+      pointer = 0;
+      for(y=0; y<h; ++y) {
+        for(x=0; x<w; ++x) {
+          planeIdx = indices[y*w + x];
+
+          if(planeIdx > 0) {
+              plane = planes[planeIdx];
+
+              normalMap[pointer] = plane.n[0];
+              normalMap[pointer+1] = plane.n[1];
+              normalMap[pointer+2] = plane.n[2];
+          } else {
+              normalMap[pointer] = 0;
+              normalMap[pointer+1] = 0;
+              normalMap[pointer+2] = 0;
+          }
+
+          pointer += 3;
+        }
+      }
+
+      return {
+          width: w,
+          height: h,
+          normalMap: normalMap
+      };
+    }
+
     this.parse = function(depthMap) {
         var self = this,
             depthMapData,
@@ -158,8 +195,8 @@ GSVPANO.PanoDepthLoader = function (parameters) {
         depthMapData = new DataView(depthMap.buffer);
         header = self.parseHeader(depthMapData);
         data = self.parsePlanes(header, depthMapData);
-        console.log(data)
         depthMap = self.computeDepthMap(header, data.indices, data.planes);
+        self.normalMap = self.computeNormalMap(header, data.indices, data.planes);
 
         return depthMap;
     }

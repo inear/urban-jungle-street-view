@@ -653,20 +653,127 @@ require.register("home/index.js", Function("exports, require, module",
 require.register("credits/index.js", Function("exports, require, module",
 "//@ sourceURL=credits/index.js"
 ));
+require.register("component-raf/index.js", Function("exports, require, module",
+"/**\n\
+ * Expose `requestAnimationFrame()`.\n\
+ */\n\
+\n\
+exports = module.exports = window.requestAnimationFrame\n\
+  || window.webkitRequestAnimationFrame\n\
+  || window.mozRequestAnimationFrame\n\
+  || window.oRequestAnimationFrame\n\
+  || window.msRequestAnimationFrame\n\
+  || fallback;\n\
+\n\
+/**\n\
+ * Fallback implementation.\n\
+ */\n\
+\n\
+var prev = new Date().getTime();\n\
+function fallback(fn) {\n\
+  var curr = new Date().getTime();\n\
+  var ms = Math.max(0, 16 - (curr - prev));\n\
+  var req = setTimeout(fn, ms);\n\
+  prev = curr;\n\
+  return req;\n\
+}\n\
+\n\
+/**\n\
+ * Cancel.\n\
+ */\n\
+\n\
+var cancel = window.cancelAnimationFrame\n\
+  || window.webkitCancelAnimationFrame\n\
+  || window.mozCancelAnimationFrame\n\
+  || window.oCancelAnimationFrame\n\
+  || window.msCancelAnimationFrame\n\
+  || window.clearTimeout;\n\
+\n\
+exports.cancel = function(id){\n\
+  cancel.call(window, id);\n\
+};\n\
+//@ sourceURL=component-raf/index.js"
+));
 require.register("map/index.js", Function("exports, require, module",
-"//@ sourceURL=map/index.js"
+"var raf = require('raf');\n\
+\n\
+module.exports = PanoView;\n\
+\n\
+var isWebGL = function () {\n\
+  try {\n\
+    return !! window.WebGLRenderingContext\n\
+            && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );\n\
+  } catch(e) {\n\
+    console.log('WebGL not available starting with CanvasRenderer');\n\
+    return false;\n\
+  }\n\
+};\n\
+\n\
+function PanoView(){\n\
+\n\
+  this.render = this.render.bind(this);\n\
+\n\
+  this.canvas = document.createElement( 'canvas' );\n\
+  this.context = this.canvas.getContext( '2d' );\n\
+\n\
+  this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+  this.target = new THREE.Vector3( 0, 0, 0 );\n\
+\n\
+  this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
+\n\
+  this.scene = new THREE.Scene();\n\
+  this.scene.add( this.camera );\n\
+\n\
+  this.mesh = null;\n\
+\n\
+  this.init3D();\n\
+}\n\
+\n\
+var p = PanoView.prototype;\n\
+\n\
+p.init3D = function(){\n\
+  this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
+  this.renderer.autoClearColor = false;\n\
+  this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
+\n\
+\n\
+  this.mesh = new THREE.Mesh(\n\
+    new THREE.SphereGeometry( 500, 60, 40 ),\n\
+    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), normalMap:new THREE.Texture(), side: THREE.DoubleSide, overdraw: true } )\n\
+  );\n\
+\n\
+  this.scene.add( this.mesh );\n\
+\n\
+\n\
+  var light = new THREE.DirectionalLight();\n\
+  this.scene.add(light);\n\
+\n\
+  this.controller.handleResize();\n\
+\n\
+  $('#app')[0].appendChild( this.renderer.domElement );\n\
+}\n\
+\n\
+p.render = function(){\n\
+  this.renderer.render( this.scene, this.camera );\n\
+  this.controller.update(0.1);\n\
+  raf(this.render);\n\
+}//@ sourceURL=map/index.js"
 ));
 require.register("boot/index.js", Function("exports, require, module",
 "'use strict';\n\
 \n\
+var Pano = require('map');\n\
 \n\
 function init() {\n\
+  var self = this;\n\
   var _panoLoader = new GSVPANO.PanoLoader({zoom: 1});\n\
   var _depthLoader = new GSVPANO.PanoDepthLoader();\n\
 \n\
+  var pano = new Pano();\n\
+\n\
   _depthLoader.onDepthLoad = function() {\n\
-    var x, y, canvas, context, image, w, h, c;\n\
-    \n\
+    var x, y, canvas, context, image, w, h, c,pointer;\n\
+\n\
     canvas = document.createElement(\"canvas\");\n\
     context = canvas.getContext('2d');\n\
 \n\
@@ -675,7 +782,7 @@ function init() {\n\
 \n\
     canvas.setAttribute('width', w);\n\
     canvas.setAttribute('height', h);\n\
-    \n\
+\n\
     image = context.getImageData(0, 0, w, h);\n\
 \n\
     for(y=0; y<h; ++y) {\n\
@@ -690,18 +797,80 @@ function init() {\n\
 \n\
     context.putImageData(image, 0, 0);\n\
 \n\
-    document.body.appendChild(canvas);\n\
+    //document.body.appendChild(canvas);\n\
+\n\
+    pano.mesh.material.map.image = canvas;\n\
+    pano.mesh.material.map.needsUpdate = true;\n\
+\n\
+    canvas = document.createElement(\"canvas\");\n\
+    context = canvas.getContext('2d');\n\
+\n\
+    w = this.depthMap.width;\n\
+    h = this.depthMap.height;\n\
+\n\
+    canvas.setAttribute('width', w);\n\
+    canvas.setAttribute('height', h);\n\
+\n\
+    image = context.getImageData(0, 0, w, h);\n\
+    pointer = 0;\n\
+\n\
+    var pixelIndex;\n\
+\n\
+    for(y=0; y<h; ++y) {\n\
+      for(x=0; x<w; ++x) {\n\
+        pointer += 3;\n\
+        pixelIndex = (y*w + (w-x))*4;\n\
+        image.data[ pixelIndex ] = (this.normalMap.normalMap[pointer]+1)/2 * 255;\n\
+        image.data[pixelIndex + 1] = (this.normalMap.normalMap[pointer+1]+1)/2 * 255;\n\
+        image.data[pixelIndex + 2] = (this.normalMap.normalMap[pointer+2]+1)/2 * 255;\n\
+        image.data[pixelIndex + 3] = 255;\n\
+      }\n\
+    }\n\
+\n\
+    context.putImageData(image, 0, 0);\n\
+\n\
+    //document.body.appendChild(canvas);\n\
+\n\
+    pano.mesh.material.normalMap.image = canvas;\n\
+    pano.mesh.material.normalMap.needsUpdate = true;\n\
+\n\
+    pano.render();\n\
   }\n\
 \n\
   _panoLoader.onPanoramaLoad = function() {\n\
-    document.body.appendChild(this.canvas);\n\
+    //document.body.appendChild(this.canvas);\n\
     _depthLoader.load(this.panoId);\n\
   };\n\
 \n\
-  _panoLoader.load(new google.maps.LatLng(42.345601, -71.098348));\n\
+\n\
+\n\
+/*\n\
+  if (navigator.geolocation) {\n\
+    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);\n\
+  }\n\
+  else {\n\
+    _panoLoader.load(new google.maps.LatLng(42.345601, -71.098348));\n\
+  }\n\
+\n\
+  function successFunction(position)\n\
+  {\n\
+      var lat = position.coords.latitude;\n\
+      var lon = position.coords.longitude;\n\
+      _panoLoader.load(new google.maps.LatLng(lat,lon));\n\
+  }\n\
+\n\
+  function errorFunction(position)\n\
+  {\n\
+\n\
+    _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+  }*/\n\
+   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+\n\
+\n\
 }\n\
 \n\
-init();//@ sourceURL=boot/index.js"
+init();\n\
+//@ sourceURL=boot/index.js"
 ));
 
 
@@ -723,6 +892,7 @@ require.register("home/template.html", Function("exports, require, module",
 require.register("credits/template.html", Function("exports, require, module",
 "module.exports = '';//@ sourceURL=credits/template.html"
 ));
+
 require.register("map/template.html", Function("exports, require, module",
 "module.exports = '';//@ sourceURL=map/template.html"
 ));
@@ -741,5 +911,7 @@ require.alias("credits/index.js", "boot/deps/credits/index.js");
 require.alias("credits/index.js", "credits/index.js");
 require.alias("map/index.js", "boot/deps/map/index.js");
 require.alias("map/index.js", "boot/deps/map/index.js");
+require.alias("component-raf/index.js", "map/deps/raf/index.js");
+
 require.alias("map/index.js", "map/index.js");
 require.alias("boot/index.js", "boot/index.js");
