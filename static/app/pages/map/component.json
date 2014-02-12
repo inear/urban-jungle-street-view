@@ -9,6 +9,9 @@
   ],
   "templates": [
     "template.html"
-  ]
+  ],
+  "dependencies": {
+    "component/raf": "*"
+  }
 
 }
