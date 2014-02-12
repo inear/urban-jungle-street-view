@@ -2,6 +2,8 @@
 .DS_Store
 npm-debug.log
 
+node_modules/
+
 /*.sublime-project
 *.sublime-workspace
 sftp-config*.json
