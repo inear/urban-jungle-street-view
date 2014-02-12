@@ -1,0 +1,14 @@
+._*
+.DS_Store
+npm-debug.log
+
+/*.sublime-project
+*.sublime-workspace
+sftp-config*.json
+
+.sass-cache
+
+static/build
+
+# ignore symlink
+static/index.html
