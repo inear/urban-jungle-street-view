@@ -10,6 +10,10 @@
   "templates": [
     "template.html"
   ],
+  "strings": [
+    "water_vs.glsl",
+    "water_fs.glsl"
+  ],
   "dependencies": {
     "component/raf": "*"
   }

@@ -34,6 +34,11 @@ gulp.task('dev', ['clean', 'dev-scripts', 'dev-styles'], function() {
     gulp.run('dev-scripts');
   });
 
+
+  gulp.watch(cfg.src.scripts + '/**/*.glsl', function() {
+    gulp.run('dev-scripts');
+  });
+
   gulp.watch('./components/**/*.js', function() {
     gulp.run('dev-scripts');
   });

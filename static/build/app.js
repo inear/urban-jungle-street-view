@@ -711,6 +711,8 @@ var isWebGL = function () {\n\
 \n\
 function PanoView(){\n\
 \n\
+  this.time = 0;\n\
+\n\
   this.render = this.render.bind(this);\n\
 \n\
   this.canvas = document.createElement( 'canvas' );\n\
@@ -739,14 +741,44 @@ p.init3D = function(){\n\
 \n\
   this.mesh = new THREE.Mesh(\n\
     new THREE.SphereGeometry( 500, 60, 40 ),\n\
-    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), normalMap:new THREE.Texture(), side: THREE.DoubleSide, overdraw: true } )\n\
+    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), normalMap:new THREE.Texture(), side: THREE.DoubleSide } )\n\
+  );\n\
+\n\
+  this.mesh2 = new THREE.Mesh(\n\
+    new THREE.SphereGeometry( 490, 60, 40 ),\n\
+    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), side: THREE.DoubleSide, opacity:0.5,transparent:true } )\n\
+  );\n\
+\n\
+  var groundMaskUniforms = {\n\
+    texture1: { type: \"t\", value: new THREE.Texture() },\n\
+    texture2: { type: \"t\", value: new THREE.Texture() }\n\
+  };\n\
+\n\
+  var params = {\n\
+    uniforms:  groundMaskUniforms,\n\
+    vertexShader: require('./water_vs.glsl'),\n\
+    fragmentShader: require('./water_fs.glsl'),\n\
+    side: THREE.DoubleSide,\n\
+    transparent:true,\n\
+    lights: false\n\
+  }\n\
+\n\
+  var maskMaterial = new THREE.ShaderMaterial(params);\n\
+  //maskMaterial.uniforms.map = new THREE.Texture();\n\
+\n\
+\n\
+  this.mesh3 = new THREE.Mesh(\n\
+    new THREE.SphereGeometry( 500, 60, 40 ),\n\
+    maskMaterial\n\
   );\n\
 \n\
   this.scene.add( this.mesh );\n\
+  //this.scene.add( this.mesh2 );\n\
+  this.scene.add( this.mesh3 );\n\
 \n\
 \n\
-  var light = new THREE.DirectionalLight();\n\
-  this.scene.add(light);\n\
+  this.light = new THREE.AmbientLight();\n\
+  this.scene.add(this.light);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -756,8 +788,56 @@ p.init3D = function(){\n\
 p.render = function(){\n\
   this.renderer.render( this.scene, this.camera );\n\
   this.controller.update(0.1);\n\
+  this.time += 0.01;\n\
+\n\
   raf(this.render);\n\
-}//@ sourceURL=map/index.js"
+}\n\
+//@ sourceURL=map/index.js"
+));
+require.register("map/water_vs.glsl", Function("exports, require, module",
+"module.exports = '// switch on high precision floats\\n\
+varying vec4 mPosition;\\n\
+varying vec2 vUv;\\n\
+uniform float time;\\n\
+\\n\
+void main() {\\n\
+\\n\
+  mPosition = modelMatrix * vec4(position,1.0);\\n\
+\\n\
+  vUv = uv;\\n\
+  vec4 mvPosition = viewMatrix * mPosition;\\n\
+  gl_Position = projectionMatrix * mvPosition;\\n\
+\\n\
+}\\n\
+';//@ sourceURL=map/water_vs.glsl"
+));
+require.register("map/water_fs.glsl", Function("exports, require, module",
+"module.exports = 'varying vec4 mPosition;\\n\
+uniform sampler2D texture1;\\n\
+uniform sampler2D texture2;\\n\
+uniform float time;\\n\
+varying vec2 vUv;\\n\
+\\n\
+uniform vec3 diffuse;\\n\
+uniform vec3 fogColor;\\n\
+uniform float fogNear;\\n\
+uniform float fogFar;\\n\
+\\n\
+void main() {\\n\
+\\n\
+  vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\
+  vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\\n\
+  float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
+  vec3 waterColor = vec3(1.0);\\n\
+\\n\
+  gl_FragColor = vec4( mix(waterColor,diffuseTex2,1.0),thres-0.3);\\n\
+\\n\
+  //float depth = gl_FragCoord.z / gl_FragCoord.w;\\n\
+  //float fogFactor = smoothstep( fogNear, fogFar, depth );\\n\
+  //gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\\n\
+\\n\
+}\\n\
+';//@ sourceURL=map/water_fs.glsl"
 ));
 require.register("boot/index.js", Function("exports, require, module",
 "'use strict';\n\
@@ -799,8 +879,11 @@ function init() {\n\
 \n\
     //document.body.appendChild(canvas);\n\
 \n\
-    pano.mesh.material.map.image = canvas;\n\
-    pano.mesh.material.map.needsUpdate = true;\n\
+    //pano.mesh.material.map.image = canvas;\n\
+    //pano.mesh.material.map.needsUpdate = true;\n\
+\n\
+    pano.mesh3.material.uniforms.texture2.value.image = canvas;\n\
+    pano.mesh3.material.uniforms.texture2.value.needsUpdate = true;\n\
 \n\
     canvas = document.createElement(\"canvas\");\n\
     context = canvas.getContext('2d');\n\
@@ -829,16 +912,27 @@ function init() {\n\
 \n\
     context.putImageData(image, 0, 0);\n\
 \n\
-    //document.body.appendChild(canvas);\n\
+    document.body.appendChild(canvas);\n\
 \n\
-    pano.mesh.material.normalMap.image = canvas;\n\
-    pano.mesh.material.normalMap.needsUpdate = true;\n\
+    //pano.mesh2.material.map.image = canvas;\n\
+    //pano.mesh2.material.map.needsUpdate = true;\n\
+\n\
+    pano.mesh3.material.uniforms.texture1.value.image = canvas;\n\
+    pano.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
+\n\
+    console.log(pano.mesh3.material.uniforms);\n\
+    //pano.mesh.material.normalScale.value = 1;\n\
+    //pano.mesh.material.normalMap.needsUpdate = true;\n\
 \n\
     pano.render();\n\
   }\n\
 \n\
   _panoLoader.onPanoramaLoad = function() {\n\
     //document.body.appendChild(this.canvas);\n\
+\n\
+    pano.mesh.material.map.image = this.canvas;\n\
+    pano.mesh.material.map.needsUpdate = true;\n\
+\n\
     _depthLoader.load(this.panoId);\n\
   };\n\
 \n\
