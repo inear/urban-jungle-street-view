@@ -3,6 +3,7 @@
 npm-debug.log
 
 node_modules/
+components/
 
 /*.sublime-project
 *.sublime-workspace
@@ -12,5 +13,3 @@ sftp-config*.json
 
 static/build
 
-# ignore symlink
-static/index.html
