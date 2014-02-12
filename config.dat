@@ -1,0 +1,6 @@
+# Src dirs
+src.styles=./static/styles
+^.scripts=./static/app
+
+# Destination dirs
+build.output=./static/build

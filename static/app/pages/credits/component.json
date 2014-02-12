@@ -1,0 +1,13 @@
+{
+  "name": "credits",
+  "main": "index.js",
+  "scripts": [
+    "index.js"
+  ],
+  "styles": [
+    "credits.css"
+  ],
+  "templates": [
+    "template.html"
+  ]
+}

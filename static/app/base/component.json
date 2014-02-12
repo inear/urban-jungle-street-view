@@ -1,0 +1,13 @@
+{
+  "name": "base",
+  "styles": [
+    "fonts.css",
+    "base.css"
+  ],
+  "fonts": [
+    "fonts/AlbertusMTStd.eot",
+    "fonts/AlbertusMTStd.svg",
+    "fonts/AlbertusMTStd.ttf",
+    "fonts/AlbertusMTStd.woff"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "mapsdepth",
+  "paths": ["static/app", "static/app/pages"],
+  "local": ["boot"]
+}

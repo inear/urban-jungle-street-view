@@ -1,0 +1,13 @@
+{
+  "name": "home",
+  "main": "index.js",
+  "scripts": [
+    "index.js"
+  ],
+  "styles": [
+    "home.css"
+  ],
+  "templates": [
+    "template.html"
+  ]
+}

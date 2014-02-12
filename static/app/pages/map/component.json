@@ -1,0 +1,14 @@
+{
+  "name": "map",
+  "main": "index.js",
+  "scripts": [
+    "index.js"
+  ],
+  "styles": [
+    "map.css"
+  ],
+  "templates": [
+    "template.html"
+  ]
+
+}

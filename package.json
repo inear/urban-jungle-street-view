@@ -1,0 +1,17 @@
+{
+  "name": "google-coffeeart",
+  "description": "Google Coffee Art Project",
+  "devDependencies": {
+    "gulp": "~3.3.1",
+    "gulp-rework": "~0.2.0",
+    "gulp-autoprefixer": "0.0.3",
+    "rework-npm": "~0.3.0",
+    "rework-vars": "~2.0.2",
+    "rework-inherit": "~0.2.1",
+    "gulp-component": "~0.1.4",
+    "varstream": "~0.2.2",
+    "component-string": "~0.1.2",
+    "component-json": "~0.1.4",
+    "gulp-rimraf": "0.0.7"
+  }
+}
