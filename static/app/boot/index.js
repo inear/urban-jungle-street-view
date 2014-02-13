@@ -85,6 +85,8 @@ function init() {
 
     pano.mesh3.material.uniforms.texture0.value.image = this.canvas;
     pano.mesh3.material.uniforms.texture0.value.needsUpdate = true;
+    //pano.markerMaterial.envMap.image = this.canvas;
+    //pano.markerMaterial.envMap.needsUpdate = true;
 
     _depthLoader.load(this.panoId);
   };
@@ -112,7 +114,7 @@ function init() {
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
   }*/
    //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
-   _panoLoader.load(new google.maps.LatLng(40.70942,-74.010319));
+   _panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
 
 
 }

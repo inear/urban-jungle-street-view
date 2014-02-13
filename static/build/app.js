@@ -731,8 +731,16 @@ function PanoView(){\n\
 \n\
   this.mesh = null;\n\
 \n\
-  this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
-  this.markerMaterial = new THREE.MeshBasicMaterial({color:0xff0000});\n\
+  //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
+  this.markerGeo = new THREE.PlaneGeometry(4,4,1,1);\n\
+  var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
+  \n\
+  this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });\n\
+  \n\
+\n\
+  var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
+  this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
+  this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
 \n\
   this.init3D();\n\
   this.initEvents();\n\
@@ -741,10 +749,12 @@ function PanoView(){\n\
 var p = PanoView.prototype;\n\
 \n\
 p.init3D = function(){\n\
+\n\
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
   this.renderer.autoClearColor = false;\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
-\n\
+  //this.renderer.sortObjects = true;\n\
+  //this.renderer.sortElements = true;\n\
 \n\
   this.mesh = new THREE.Mesh(\n\
     new THREE.SphereGeometry( 500, 60, 40 ),\n\
@@ -774,7 +784,6 @@ p.init3D = function(){\n\
   var maskMaterial = new THREE.ShaderMaterial(params);\n\
   //maskMaterial.uniforms.map = new THREE.Texture();\n\
 \n\
-\n\
   this.mesh3 = new THREE.Mesh(\n\
     new THREE.SphereGeometry( 800, 60, 40 ),\n\
     maskMaterial\n\
@@ -787,6 +796,11 @@ p.init3D = function(){\n\
 \n\
   this.light = new THREE.AmbientLight();\n\
   this.scene.add(this.light);\n\
+\n\
+\n\
+\n\
+  this.light2 = new THREE.DirectionalLight();\n\
+  //this.scene.add(this.light2);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -814,7 +828,7 @@ p.onSceneClick = function(event){\n\
     var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
 \n\
     this.plotIn3D(intersects[0].point);\n\
-    //this.plotOnTexture(u,v);\n\
+    this.plotOnTexture(intersects[0].point);\n\
     //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');\n\
   }\n\
   else {\n\
@@ -832,14 +846,33 @@ p.setNormalData = function( data ){\n\
 }\n\
 \n\
 p.plotIn3D = function(point){\n\
-  var sphere = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
-  sphere.position.copy(point);\n\
-  console.log(this.getDistance(point));\n\
-  sphere.position.normalize().multiplyScalar(this.getDistance(point));\n\
-  this.scene.add(sphere);\n\
+  var marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+  marker.position.copy(point);\n\
+  \n\
+  var pointData = this.getPointData(point);\n\
+\n\
+  marker.position.normalize().multiplyScalar(pointData.distance);\n\
+  \n\
+  var v = marker.position.clone();\n\
+  v.add( pointData.normal );\n\
+  marker.lookAt(v);\n\
+\n\
+  this.scene.add(marker);\n\
+\n\
+  //grass billboard\n\
+  for (var i = 0; i < 15; i++) {\n\
+    var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
+    billboard.rotation.x = Math.PI*-0.5;\n\
+    billboard.rotation.y = Math.PI*Math.random();\n\
+    billboard.position.z = -1.5;\n\
+    billboard.position.x = Math.random()*3-1.5;\n\
+    billboard.position.y = Math.random()*3-1.5;\n\
+    marker.add(billboard);  \n\
+  };\n\
+  \n\
 }\n\
 \n\
-p.getDistance = function(point){\n\
+p.getPointData = function(point){\n\
 \n\
   var normalizedPoint = point.clone().normalize();\n\
   var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
@@ -850,20 +883,43 @@ p.getDistance = function(point){\n\
   var h = 256;\n\
   \n\
   u = (u-0.25);\n\
-  if( u < 0 ) u = 1-u;\n\
+  if( u < 0 ) {\n\
+    u = 1+u;\n\
+  }\n\
 \n\
   v = (1-v);\n\
 \n\
   var x = Math.floor(u*w);\n\
   var y = Math.floor(v*h);\n\
 \n\
-  var distance = this.depthData[y*w + x];\n\
+  var pixelIndex = y*w + x;\n\
 \n\
-  return distance;\n\
+  var distance = this.depthData[pixelIndex];\n\
+\n\
+ var normal = new THREE.Vector3(\n\
+    this.normalData[pixelIndex*3],\n\
+    this.normalData[pixelIndex*3+1],\n\
+    this.normalData[pixelIndex*3+2]);\n\
+  \n\
+  if(this.normalData[pixelIndex*3] === 0 && this.normalData[pixelIndex*3+1] === 0 && this.normalData[pixelIndex*3+2] === 0 ) {\n\
+    normal = normal.set(0,1,0); \n\
+  }\n\
+  \n\
+  return {\n\
+    distance: distance,\n\
+    normal: normal\n\
+  }\n\
+\n\
 }\n\
 \n\
-p.plotOnTexture = function(u,v){\n\
+\n\
+\n\
+p.plotOnTexture = function(point){\n\
   \n\
+  var normalizedPoint = point.clone().normalize();\n\
+  var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
+  var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
+\n\
   //normal\n\
   var canvas = this.mesh3.material.uniforms.texture1.value.image;\n\
   var ctx = canvas.getContext('2d');\n\
@@ -876,7 +932,7 @@ p.plotOnTexture = function(u,v){\n\
   var h = 256;\n\
   \n\
   u = (u-0.25);\n\
-  if( u < 0 ) u = 1-u;\n\
+  if( u < 0 ) u = 1+u;\n\
 \n\
   v = (1-v);\n\
 \n\
@@ -885,8 +941,6 @@ p.plotOnTexture = function(u,v){\n\
   \n\
   ctx.fillRect(x,y,10,10);\n\
   this.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
-  console.log(this.depthData[y*w + x]);\n\
-\n\
   \n\
 }\n\
 \n\
@@ -944,7 +998,7 @@ void main() {\\n\
 \\n\
   vec3 waterColor = diffuseTex0;\\n\
 \\n\
-  gl_FragColor = vec4( diffuseTex0,1.0);\\n\
+  gl_FragColor = vec4( mix(waterColor,diffuseTex2,0.0),1.0);\\n\
 \\n\
   //float depth = gl_FragCoord.z / gl_FragCoord.w;\\n\
   //float fogFactor = smoothstep( fogNear, fogFar, depth );\\n\
@@ -1041,6 +1095,8 @@ function init() {\n\
 \n\
     pano.mesh3.material.uniforms.texture0.value.image = this.canvas;\n\
     pano.mesh3.material.uniforms.texture0.value.needsUpdate = true;\n\
+    //pano.markerMaterial.envMap.image = this.canvas;\n\
+    //pano.markerMaterial.envMap.needsUpdate = true;\n\
 \n\
     _depthLoader.load(this.panoId);\n\
   };\n\
@@ -1068,7 +1124,7 @@ function init() {\n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
    //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
-   _panoLoader.load(new google.maps.LatLng(40.70942,-74.010319));\n\
+   _panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
 \n\
 }\n\

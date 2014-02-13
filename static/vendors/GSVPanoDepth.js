@@ -76,7 +76,7 @@ GSVPANO.PanoDepthLoader = function (parameters) {
             offset: depthMap.getUint16(7, true)
         };
     }
-    
+
     this.parsePlanes = function(header, depthMap) {
         var planes = [],
             indices = [],
@@ -165,9 +165,9 @@ GSVPANO.PanoDepthLoader = function (parameters) {
           if(planeIdx > 0) {
               plane = planes[planeIdx];
 
-              normalMap[pointer] = plane.n[0];
-              normalMap[pointer+1] = plane.n[1];
-              normalMap[pointer+2] = plane.n[2];
+              normalMap[pointer] = plane.n[1];
+              normalMap[pointer+1] = plane.n[2];
+              normalMap[pointer+2] = plane.n[0];
           } else {
               normalMap[pointer] = 0;
               normalMap[pointer+1] = 0;
@@ -202,8 +202,8 @@ GSVPANO.PanoDepthLoader = function (parameters) {
     }
 
     this.createEmptyDepthMap = function() {
-        var W = 512 *2; 
-        var H = 256 *2; 
+        var W = 512 *2;
+        var H = 256 *2;
 
         var depthMap = {
             width: W,

@@ -34,8 +34,16 @@ function PanoView(){
 
   this.mesh = null;
 
-  this.markerGeo = new THREE.SphereGeometry(2,4,4);
-  this.markerMaterial = new THREE.MeshBasicMaterial({color:0xff0000});
+  //this.markerGeo = new THREE.SphereGeometry(2,4,4);
+  this.markerGeo = new THREE.PlaneGeometry(4,4,1,1);
+  var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');
+  
+  this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });
+  
+
+  var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
+  this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
+  this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);
 
   this.init3D();
   this.initEvents();
@@ -44,10 +52,12 @@ function PanoView(){
 var p = PanoView.prototype;
 
 p.init3D = function(){
+
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
   this.renderer.autoClearColor = false;
   this.renderer.setSize( window.innerWidth, window.innerHeight );
-
+  //this.renderer.sortObjects = true;
+  //this.renderer.sortElements = true;
 
   this.mesh = new THREE.Mesh(
     new THREE.SphereGeometry( 500, 60, 40 ),
@@ -77,7 +87,6 @@ p.init3D = function(){
   var maskMaterial = new THREE.ShaderMaterial(params);
   //maskMaterial.uniforms.map = new THREE.Texture();
 
-
   this.mesh3 = new THREE.Mesh(
     new THREE.SphereGeometry( 800, 60, 40 ),
     maskMaterial
@@ -90,6 +99,11 @@ p.init3D = function(){
 
   this.light = new THREE.AmbientLight();
   this.scene.add(this.light);
+
+
+
+  this.light2 = new THREE.DirectionalLight();
+  //this.scene.add(this.light2);
 
   this.controller.handleResize();
 
@@ -117,7 +131,7 @@ p.onSceneClick = function(event){
     var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;
 
     this.plotIn3D(intersects[0].point);
-    //this.plotOnTexture(u,v);
+    this.plotOnTexture(intersects[0].point);
     //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');
   }
   else {
@@ -135,14 +149,33 @@ p.setNormalData = function( data ){
 }
 
 p.plotIn3D = function(point){
-  var sphere = new THREE.Mesh(this.markerGeo, this.markerMaterial);
-  sphere.position.copy(point);
-  console.log(this.getDistance(point));
-  sphere.position.normalize().multiplyScalar(this.getDistance(point));
-  this.scene.add(sphere);
+  var marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);
+  marker.position.copy(point);
+  
+  var pointData = this.getPointData(point);
+
+  marker.position.normalize().multiplyScalar(pointData.distance);
+  
+  var v = marker.position.clone();
+  v.add( pointData.normal );
+  marker.lookAt(v);
+
+  this.scene.add(marker);
+
+  //grass billboard
+  for (var i = 0; i < 15; i++) {
+    var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );
+    billboard.rotation.x = Math.PI*-0.5;
+    billboard.rotation.y = Math.PI*Math.random();
+    billboard.position.z = -1.5;
+    billboard.position.x = Math.random()*3-1.5;
+    billboard.position.y = Math.random()*3-1.5;
+    marker.add(billboard);  
+  };
+  
 }
 
-p.getDistance = function(point){
+p.getPointData = function(point){
 
   var normalizedPoint = point.clone().normalize();
   var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;
@@ -153,20 +186,43 @@ p.getDistance = function(point){
   var h = 256;
   
   u = (u-0.25);
-  if( u < 0 ) u = 1-u;
+  if( u < 0 ) {
+    u = 1+u;
+  }
 
   v = (1-v);
 
   var x = Math.floor(u*w);
   var y = Math.floor(v*h);
 
-  var distance = this.depthData[y*w + x];
+  var pixelIndex = y*w + x;
 
-  return distance;
+  var distance = this.depthData[pixelIndex];
+
+ var normal = new THREE.Vector3(
+    this.normalData[pixelIndex*3],
+    this.normalData[pixelIndex*3+1],
+    this.normalData[pixelIndex*3+2]);
+  
+  if(this.normalData[pixelIndex*3] === 0 && this.normalData[pixelIndex*3+1] === 0 && this.normalData[pixelIndex*3+2] === 0 ) {
+    normal = normal.set(0,1,0); 
+  }
+  
+  return {
+    distance: distance,
+    normal: normal
+  }
+
 }
 
-p.plotOnTexture = function(u,v){
+
+
+p.plotOnTexture = function(point){
   
+  var normalizedPoint = point.clone().normalize();
+  var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;
+  var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;
+
   //normal
   var canvas = this.mesh3.material.uniforms.texture1.value.image;
   var ctx = canvas.getContext('2d');
@@ -179,7 +235,7 @@ p.plotOnTexture = function(u,v){
   var h = 256;
   
   u = (u-0.25);
-  if( u < 0 ) u = 1-u;
+  if( u < 0 ) u = 1+u;
 
   v = (1-v);
 
@@ -188,8 +244,6 @@ p.plotOnTexture = function(u,v){
   
   ctx.fillRect(x,y,10,10);
   this.mesh3.material.uniforms.texture1.value.needsUpdate = true;
-  console.log(this.depthData[y*w + x]);
-
   
 }
 

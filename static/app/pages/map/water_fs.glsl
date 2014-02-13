@@ -25,7 +25,7 @@ void main() {
 
   vec3 waterColor = diffuseTex0;
 
-  gl_FragColor = vec4( diffuseTex0,1.0);
+  gl_FragColor = vec4( mix(waterColor,diffuseTex2,0.0),1.0);
 
   //float depth = gl_FragCoord.z / gl_FragCoord.w;
   //float fogFactor = smoothstep( fogNear, fogFar, depth );
