@@ -721,7 +721,7 @@ function PanoView(){\n\
   this.canvas = document.createElement( 'canvas' );\n\
   this.context = this.canvas.getContext( '2d' );\n\
 \n\
-  this.camera = new THREE.PerspectiveCamera(80, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+  this.camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 1, 1100 );\n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
@@ -740,6 +740,14 @@ function PanoView(){\n\
 \n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
+\n\
+  var wallMossMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-moss.png' );\n\
+  this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
+\n\
+  var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-hang.png' );\n\
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );  \n\
+\n\
+  this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
   this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
 \n\
   this.init3D();\n\
@@ -846,29 +854,49 @@ p.setNormalData = function( data ){\n\
 }\n\
 \n\
 p.plotIn3D = function(point){\n\
-  var marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
-  marker.position.copy(point);\n\
   \n\
   var pointData = this.getPointData(point);\n\
+  \n\
+  var marker;\n\
+  \n\
+  if(pointData.normal.y < -0.7) {\n\
+\n\
+     marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+\n\
+    //grass billboard\n\
+    for (var i = 0; i < 15; i++) {\n\
+      var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
+      billboard.rotation.x = Math.PI*-0.5;\n\
+      billboard.rotation.y = Math.PI*Math.random();\n\
+      billboard.position.z = -1.5;\n\
+      billboard.position.x = Math.random()*3-1.5;\n\
+      billboard.position.y = Math.random()*3-1.5;\n\
+      marker.add(billboard);  \n\
+    };\n\
+  }\n\
+  else {\n\
+\n\
+    marker = new THREE.Object3D();//new THREE.Mesh(this.markerGeo, this.wallMossMaterial);\n\
+\n\
+    for (var i = 0; i < 6; i++) {\n\
+      var billboard = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
+      //billboard.rotation.x = Math.PI*-0.5;\n\
+      billboard.rotation.y = Math.PI*Math.random();\n\
+      //billboard.position.z = -1.5;\n\
+      billboard.position.x = Math.random()*3-1.5;\n\
+      billboard.position.z = Math.random()*3-1.5;\n\
+      marker.add(billboard);  \n\
+    };\n\
+    \n\
+  }\n\
+\n\
+  marker.position.copy(point);\n\
 \n\
   marker.position.normalize().multiplyScalar(pointData.distance);\n\
-  \n\
   var v = marker.position.clone();\n\
   v.add( pointData.normal );\n\
   marker.lookAt(v);\n\
-\n\
   this.scene.add(marker);\n\
-\n\
-  //grass billboard\n\
-  for (var i = 0; i < 15; i++) {\n\
-    var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
-    billboard.rotation.x = Math.PI*-0.5;\n\
-    billboard.rotation.y = Math.PI*Math.random();\n\
-    billboard.position.z = -1.5;\n\
-    billboard.position.x = Math.random()*3-1.5;\n\
-    billboard.position.y = Math.random()*3-1.5;\n\
-    marker.add(billboard);  \n\
-  };\n\
   \n\
 }\n\
 \n\
@@ -986,7 +1014,7 @@ uniform float fogFar;\\n\
 void main() {\\n\
 \\n\
   //diffuse\\n\
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;\\n\
 \\n\
   //normal\\n\
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\

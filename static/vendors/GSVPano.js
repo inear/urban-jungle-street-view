@@ -16,27 +16,27 @@ GSVPANO.PanoLoader = function (parameters) {
         copyright = '',
         onSizeChange = null,
         onPanoramaLoad = null;
-        
+
     this.setProgress = function (p) {
-    
+
         if (this.onProgress) {
             this.onProgress(p);
         }
-        
+
     };
 
     this.throwError = function (message) {
-    
+
         if (this.onError) {
             this.onError(message);
         } else {
             console.error(message);
         }
-        
+
     };
 
     this.adaptTextureToZoom = function () {
-    
+
         var w = 416 * Math.pow(2, _zoom),
             h = (416 * Math.pow(2, _zoom - 1));
         _canvas.width = w;
@@ -46,41 +46,41 @@ GSVPANO.PanoLoader = function (parameters) {
     };
 
     this.composeFromTile = function (x, y, texture) {
-    
+
         _ctx.drawImage(texture, x * 512, y * 512);
         _count++;
-        
+
         var p = Math.round(_count * 100 / _total);
         this.setProgress(p);
-        
+
         if (_count === _total) {
             this.canvas = _canvas;
             if (this.onPanoramaLoad) {
                 this.onPanoramaLoad();
             }
         }
-        
+
     };
 
     this.composePanorama = function () {
-    
+
         this.setProgress(0);
         console.log('Loading panorama for zoom ' + _zoom + '...');
-        
+
         var w = Math.pow(2, _zoom),
             h = Math.pow(2, _zoom - 1),
             self = this,
             url,
             x,
             y;
-            
+
         _count = 0;
         _total = w * h;
-        
+
         for( y = 0; y < h; y++) {
             for( x = 0; x < w; x++) {
                 url = 'http://maps.google.com/cbk?output=tile&panoid=' + _panoId + '&zoom=' + _zoom + '&x=' + x + '&y=' + y + '&' + Date.now();
-                (function (x, y) { 
+                (function (x, y) {
                     var img = new Image();
                     img.addEventListener('load', function () {
                         self.composeFromTile(x, y, this);
@@ -90,11 +90,11 @@ GSVPANO.PanoLoader = function (parameters) {
                 })(x, y);
             }
         }
-        
+
     };
 
     this.load = function (location) {
-    
+
         console.log('Load for', location);
         var self = this;
         _panoClient.getPanoramaByLocation(location, 50, function (result, status) {
@@ -113,9 +113,9 @@ GSVPANO.PanoLoader = function (parameters) {
                 self.throwError('Could not retrieve panorama for the following reason: ' + status);
             }
         });
-        
+
     };
-    
+
     this.setZoom = function( z ) {
         _zoom = z;
         this.adaptTextureToZoom();

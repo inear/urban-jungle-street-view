@@ -24,7 +24,7 @@ function PanoView(){
   this.canvas = document.createElement( 'canvas' );
   this.context = this.canvas.getContext( '2d' );
 
-  this.camera = new THREE.PerspectiveCamera(80, window.innerWidth/window.innerHeight, 1, 1100 );
+  this.camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 1, 1100 );
   this.target = new THREE.Vector3( 0, 0, 0 );
 
   this.controller = new THREE.FirstPersonControls(this.camera,document);
@@ -43,6 +43,14 @@ function PanoView(){
 
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
+
+  var wallMossMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-moss.png' );
+  this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, alphaTest: 0.8, side: THREE.DoubleSide } );
+
+  var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-hang.png' );
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );  
+
+  this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);
   this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);
 
   this.init3D();
@@ -149,29 +157,49 @@ p.setNormalData = function( data ){
 }
 
 p.plotIn3D = function(point){
-  var marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);
-  marker.position.copy(point);
   
   var pointData = this.getPointData(point);
+  
+  var marker;
+  
+  if(pointData.normal.y < -0.7) {
+
+     marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);
+
+    //grass billboard
+    for (var i = 0; i < 15; i++) {
+      var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );
+      billboard.rotation.x = Math.PI*-0.5;
+      billboard.rotation.y = Math.PI*Math.random();
+      billboard.position.z = -1.5;
+      billboard.position.x = Math.random()*3-1.5;
+      billboard.position.y = Math.random()*3-1.5;
+      marker.add(billboard);  
+    };
+  }
+  else {
+
+    marker = new THREE.Object3D();//new THREE.Mesh(this.markerGeo, this.wallMossMaterial);
+
+    for (var i = 0; i < 6; i++) {
+      var billboard = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );
+      //billboard.rotation.x = Math.PI*-0.5;
+      billboard.rotation.y = Math.PI*Math.random();
+      //billboard.position.z = -1.5;
+      billboard.position.x = Math.random()*3-1.5;
+      billboard.position.z = Math.random()*3-1.5;
+      marker.add(billboard);  
+    };
+    
+  }
+
+  marker.position.copy(point);
 
   marker.position.normalize().multiplyScalar(pointData.distance);
-  
   var v = marker.position.clone();
   v.add( pointData.normal );
   marker.lookAt(v);
-
   this.scene.add(marker);
-
-  //grass billboard
-  for (var i = 0; i < 15; i++) {
-    var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );
-    billboard.rotation.x = Math.PI*-0.5;
-    billboard.rotation.y = Math.PI*Math.random();
-    billboard.position.z = -1.5;
-    billboard.position.x = Math.random()*3-1.5;
-    billboard.position.y = Math.random()*3-1.5;
-    marker.add(billboard);  
-  };
   
 }
 
