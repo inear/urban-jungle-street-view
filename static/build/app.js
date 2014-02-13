@@ -713,12 +713,15 @@ function PanoView(){\n\
 \n\
   this.time = 0;\n\
 \n\
+  this.depthData = null;\n\
+\n\
   this.render = this.render.bind(this);\n\
+  this.onSceneClick = this.onSceneClick.bind(this);\n\
 \n\
   this.canvas = document.createElement( 'canvas' );\n\
   this.context = this.canvas.getContext( '2d' );\n\
 \n\
-  this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+  this.camera = new THREE.PerspectiveCamera(80, window.innerWidth/window.innerHeight, 1, 1100 );\n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
@@ -728,7 +731,11 @@ function PanoView(){\n\
 \n\
   this.mesh = null;\n\
 \n\
+  this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
+  this.markerMaterial = new THREE.MeshBasicMaterial({color:0xff0000});\n\
+\n\
   this.init3D();\n\
+  this.initEvents();\n\
 }\n\
 \n\
 var p = PanoView.prototype;\n\
@@ -750,6 +757,7 @@ p.init3D = function(){\n\
   );\n\
 \n\
   var groundMaskUniforms = {\n\
+    texture0: { type: \"t\", value: new THREE.Texture() },\n\
     texture1: { type: \"t\", value: new THREE.Texture() },\n\
     texture2: { type: \"t\", value: new THREE.Texture() }\n\
   };\n\
@@ -759,7 +767,7 @@ p.init3D = function(){\n\
     vertexShader: require('./water_vs.glsl'),\n\
     fragmentShader: require('./water_fs.glsl'),\n\
     side: THREE.DoubleSide,\n\
-    transparent:true,\n\
+    transparent:false,\n\
     lights: false\n\
   }\n\
 \n\
@@ -768,11 +776,11 @@ p.init3D = function(){\n\
 \n\
 \n\
   this.mesh3 = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 500, 60, 40 ),\n\
+    new THREE.SphereGeometry( 800, 60, 40 ),\n\
     maskMaterial\n\
   );\n\
 \n\
-  this.scene.add( this.mesh );\n\
+  //this.scene.add( this.mesh );\n\
   //this.scene.add( this.mesh2 );\n\
   this.scene.add( this.mesh3 );\n\
 \n\
@@ -783,6 +791,103 @@ p.init3D = function(){\n\
   this.controller.handleResize();\n\
 \n\
   $('#app')[0].appendChild( this.renderer.domElement );\n\
+}\n\
+\n\
+p.initEvents = function(){\n\
+  $(this.renderer.domElement).on('click', this.onSceneClick);\n\
+}\n\
+\n\
+p.onSceneClick = function(event){\n\
+\n\
+  var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);\n\
+  var projector = new THREE.Projector();\n\
+  projector.unprojectVector(vector, this.camera);\n\
+\n\
+  var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());\n\
+\n\
+  var intersects = raycaster.intersectObjects([this.mesh3]);\n\
+\n\
+  if (intersects.length > 0) {\n\
+    \n\
+    var normalizedPoint = intersects[0].point.clone().normalize();\n\
+    var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
+    var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
+\n\
+    this.plotIn3D(intersects[0].point);\n\
+    //this.plotOnTexture(u,v);\n\
+    //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');\n\
+  }\n\
+  else {\n\
+      console.log('no intersect');\n\
+  }\n\
+}\n\
+\n\
+p.setDepthData = function( data ){\n\
+  this.depthData = data;\n\
+}\n\
+\n\
+\n\
+p.setNormalData = function( data ){\n\
+  this.normalData = data;\n\
+}\n\
+\n\
+p.plotIn3D = function(point){\n\
+  var sphere = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+  sphere.position.copy(point);\n\
+  console.log(this.getDistance(point));\n\
+  sphere.position.normalize().multiplyScalar(this.getDistance(point));\n\
+  this.scene.add(sphere);\n\
+}\n\
+\n\
+p.getDistance = function(point){\n\
+\n\
+  var normalizedPoint = point.clone().normalize();\n\
+  var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
+  var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
+\n\
+  //distance\n\
+  var w = 512;\n\
+  var h = 256;\n\
+  \n\
+  u = (u-0.25);\n\
+  if( u < 0 ) u = 1-u;\n\
+\n\
+  v = (1-v);\n\
+\n\
+  var x = Math.floor(u*w);\n\
+  var y = Math.floor(v*h);\n\
+\n\
+  var distance = this.depthData[y*w + x];\n\
+\n\
+  return distance;\n\
+}\n\
+\n\
+p.plotOnTexture = function(u,v){\n\
+  \n\
+  //normal\n\
+  var canvas = this.mesh3.material.uniforms.texture1.value.image;\n\
+  var ctx = canvas.getContext('2d');\n\
+  var imgd = ctx.getImageData(Math.floor(u*canvas.width), Math.floor(v*canvas.height), 1, 1);\n\
+  var pix = imgd.data;\n\
+  var normal = new THREE.Vector3(pix[0]/255-0.5,pix[1]/255-0.5,pix[2]/255-0.5);\n\
+  \n\
+  //distance\n\
+  var w = 512;\n\
+  var h = 256;\n\
+  \n\
+  u = (u-0.25);\n\
+  if( u < 0 ) u = 1-u;\n\
+\n\
+  v = (1-v);\n\
+\n\
+  var x = Math.floor(u*w);\n\
+  var y = Math.floor(v*h);\n\
+  \n\
+  ctx.fillRect(x,y,10,10);\n\
+  this.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
+  console.log(this.depthData[y*w + x]);\n\
+\n\
+  \n\
 }\n\
 \n\
 p.render = function(){\n\
@@ -813,6 +918,7 @@ void main() {\\n\
 ));
 require.register("map/water_fs.glsl", Function("exports, require, module",
 "module.exports = 'varying vec4 mPosition;\\n\
+uniform sampler2D texture0;\\n\
 uniform sampler2D texture1;\\n\
 uniform sampler2D texture2;\\n\
 uniform float time;\\n\
@@ -825,12 +931,20 @@ uniform float fogFar;\\n\
 \\n\
 void main() {\\n\
 \\n\
-  vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\
-  vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\\n\
-  float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
-  vec3 waterColor = vec3(1.0);\\n\
+  //diffuse\\n\
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
 \\n\
-  gl_FragColor = vec4( mix(waterColor,diffuseTex2,1.0),thres-0.3);\\n\
+  //normal\\n\
+  vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\
+\\n\
+  //depth\\n\
+  vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\\n\
+\\n\
+  float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
+\\n\
+  vec3 waterColor = diffuseTex0;\\n\
+\\n\
+  gl_FragColor = vec4( diffuseTex0,1.0);\\n\
 \\n\
   //float depth = gl_FragCoord.z / gl_FragCoord.w;\\n\
   //float fogFactor = smoothstep( fogNear, fogFar, depth );\\n\
@@ -877,13 +991,12 @@ function init() {\n\
 \n\
     context.putImageData(image, 0, 0);\n\
 \n\
-    //document.body.appendChild(canvas);\n\
-\n\
-    //pano.mesh.material.map.image = canvas;\n\
-    //pano.mesh.material.map.needsUpdate = true;\n\
-\n\
+    document.body.appendChild(canvas);\n\
+    pano.setDepthData(this.depthMap.depthMap);\n\
     pano.mesh3.material.uniforms.texture2.value.image = canvas;\n\
     pano.mesh3.material.uniforms.texture2.value.needsUpdate = true;\n\
+\n\
+\n\
 \n\
     canvas = document.createElement(\"canvas\");\n\
     context = canvas.getContext('2d');\n\
@@ -910,28 +1023,24 @@ function init() {\n\
       }\n\
     }\n\
 \n\
+    pano.setNormalData(this.normalMap.normalMap);\n\
+\n\
     context.putImageData(image, 0, 0);\n\
 \n\
     document.body.appendChild(canvas);\n\
 \n\
-    //pano.mesh2.material.map.image = canvas;\n\
-    //pano.mesh2.material.map.needsUpdate = true;\n\
 \n\
     pano.mesh3.material.uniforms.texture1.value.image = canvas;\n\
     pano.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
-\n\
-    console.log(pano.mesh3.material.uniforms);\n\
-    //pano.mesh.material.normalScale.value = 1;\n\
-    //pano.mesh.material.normalMap.needsUpdate = true;\n\
 \n\
     pano.render();\n\
   }\n\
 \n\
   _panoLoader.onPanoramaLoad = function() {\n\
-    //document.body.appendChild(this.canvas);\n\
+    document.body.appendChild(this.canvas);\n\
 \n\
-    pano.mesh.material.map.image = this.canvas;\n\
-    pano.mesh.material.map.needsUpdate = true;\n\
+    pano.mesh3.material.uniforms.texture0.value.image = this.canvas;\n\
+    pano.mesh3.material.uniforms.texture0.value.needsUpdate = true;\n\
 \n\
     _depthLoader.load(this.panoId);\n\
   };\n\
@@ -958,7 +1067,8 @@ function init() {\n\
 \n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
-   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+   _panoLoader.load(new google.maps.LatLng(40.70942,-74.010319));\n\
 \n\
 \n\
 }\n\

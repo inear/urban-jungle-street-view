@@ -35,13 +35,12 @@ function init() {
 
     context.putImageData(image, 0, 0);
 
-    //document.body.appendChild(canvas);
-
-    //pano.mesh.material.map.image = canvas;
-    //pano.mesh.material.map.needsUpdate = true;
-
+    document.body.appendChild(canvas);
+    pano.setDepthData(this.depthMap.depthMap);
     pano.mesh3.material.uniforms.texture2.value.image = canvas;
     pano.mesh3.material.uniforms.texture2.value.needsUpdate = true;
+
+
 
     canvas = document.createElement("canvas");
     context = canvas.getContext('2d');
@@ -68,28 +67,24 @@ function init() {
       }
     }
 
+    pano.setNormalData(this.normalMap.normalMap);
+
     context.putImageData(image, 0, 0);
 
     document.body.appendChild(canvas);
 
-    //pano.mesh2.material.map.image = canvas;
-    //pano.mesh2.material.map.needsUpdate = true;
 
     pano.mesh3.material.uniforms.texture1.value.image = canvas;
     pano.mesh3.material.uniforms.texture1.value.needsUpdate = true;
-
-    console.log(pano.mesh3.material.uniforms);
-    //pano.mesh.material.normalScale.value = 1;
-    //pano.mesh.material.normalMap.needsUpdate = true;
 
     pano.render();
   }
 
   _panoLoader.onPanoramaLoad = function() {
-    //document.body.appendChild(this.canvas);
+    document.body.appendChild(this.canvas);
 
-    pano.mesh.material.map.image = this.canvas;
-    pano.mesh.material.map.needsUpdate = true;
+    pano.mesh3.material.uniforms.texture0.value.image = this.canvas;
+    pano.mesh3.material.uniforms.texture0.value.needsUpdate = true;
 
     _depthLoader.load(this.panoId);
   };
@@ -116,7 +111,8 @@ function init() {
 
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
   }*/
-   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
+   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
+   _panoLoader.load(new google.maps.LatLng(40.70942,-74.010319));
 
 
 }
