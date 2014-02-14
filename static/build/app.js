@@ -721,7 +721,7 @@ function PanoView(){\n\
   this.canvas = document.createElement( 'canvas' );\n\
   this.context = this.canvas.getContext( '2d' );\n\
 \n\
-  this.camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+  this.camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 1, 1100 );\n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
@@ -732,12 +732,11 @@ function PanoView(){\n\
   this.mesh = null;\n\
 \n\
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
-  this.markerGeo = new THREE.PlaneGeometry(4,4,1,1);\n\
+  this.markerGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
   var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
   \n\
   this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });\n\
   \n\
-\n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
 \n\
@@ -748,7 +747,7 @@ function PanoView(){\n\
   this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );  \n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
-  this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
+  this.grassBillboardGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
 \n\
   this.init3D();\n\
   this.initEvents();\n\
@@ -763,16 +762,6 @@ p.init3D = function(){\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
   //this.renderer.sortObjects = true;\n\
   //this.renderer.sortElements = true;\n\
-\n\
-  this.mesh = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 500, 60, 40 ),\n\
-    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), normalMap:new THREE.Texture(), side: THREE.DoubleSide } )\n\
-  );\n\
-\n\
-  this.mesh2 = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 490, 60, 40 ),\n\
-    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), side: THREE.DoubleSide, opacity:0.5,transparent:true } )\n\
-  );\n\
 \n\
   var groundMaskUniforms = {\n\
     texture0: { type: \"t\", value: new THREE.Texture() },\n\
@@ -792,23 +781,16 @@ p.init3D = function(){\n\
   var maskMaterial = new THREE.ShaderMaterial(params);\n\
   //maskMaterial.uniforms.map = new THREE.Texture();\n\
 \n\
-  this.mesh3 = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 800, 60, 40 ),\n\
+  this.mesh = new THREE.Mesh(\n\
+    new THREE.SphereGeometry( 500, 60, 40 ),\n\
     maskMaterial\n\
   );\n\
 \n\
-  //this.scene.add( this.mesh );\n\
-  //this.scene.add( this.mesh2 );\n\
-  this.scene.add( this.mesh3 );\n\
-\n\
+  this.scene.add( this.mesh );\n\
 \n\
   this.light = new THREE.AmbientLight();\n\
   this.scene.add(this.light);\n\
 \n\
-\n\
-\n\
-  this.light2 = new THREE.DirectionalLight();\n\
-  //this.scene.add(this.light2);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -827,7 +809,7 @@ p.onSceneClick = function(event){\n\
 \n\
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());\n\
 \n\
-  var intersects = raycaster.intersectObjects([this.mesh3]);\n\
+  var intersects = raycaster.intersectObjects([this.mesh]);\n\
 \n\
   if (intersects.length > 0) {\n\
     \n\
@@ -864,13 +846,13 @@ p.plotIn3D = function(point){\n\
      marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
 \n\
     //grass billboard\n\
-    for (var i = 0; i < 15; i++) {\n\
+    for (var i = 0; i < 7; i++) {\n\
       var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
       billboard.rotation.x = Math.PI*-0.5;\n\
       billboard.rotation.y = Math.PI*Math.random();\n\
-      billboard.position.z = -1.5;\n\
-      billboard.position.x = Math.random()*3-1.5;\n\
-      billboard.position.y = Math.random()*3-1.5;\n\
+      billboard.position.z = -1;\n\
+      billboard.position.x = Math.random()*2-1;\n\
+      billboard.position.y = Math.random()*2-1;\n\
       marker.add(billboard);  \n\
     };\n\
   }\n\
@@ -949,7 +931,7 @@ p.plotOnTexture = function(point){\n\
   var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
 \n\
   //normal\n\
-  var canvas = this.mesh3.material.uniforms.texture1.value.image;\n\
+  var canvas = this.mesh.material.uniforms.texture1.value.image;\n\
   var ctx = canvas.getContext('2d');\n\
   var imgd = ctx.getImageData(Math.floor(u*canvas.width), Math.floor(v*canvas.height), 1, 1);\n\
   var pix = imgd.data;\n\
@@ -968,7 +950,7 @@ p.plotOnTexture = function(point){\n\
   var y = Math.floor(v*h);\n\
   \n\
   ctx.fillRect(x,y,10,10);\n\
-  this.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
+  this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
   \n\
 }\n\
 \n\
@@ -1014,7 +996,7 @@ uniform float fogFar;\\n\
 void main() {\\n\
 \\n\
   //diffuse\\n\
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;\\n\
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;// + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;\\n\
 \\n\
   //normal\\n\
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\
@@ -1075,8 +1057,8 @@ function init() {\n\
 \n\
     document.body.appendChild(canvas);\n\
     pano.setDepthData(this.depthMap.depthMap);\n\
-    pano.mesh3.material.uniforms.texture2.value.image = canvas;\n\
-    pano.mesh3.material.uniforms.texture2.value.needsUpdate = true;\n\
+    pano.mesh.material.uniforms.texture2.value.image = canvas;\n\
+    pano.mesh.material.uniforms.texture2.value.needsUpdate = true;\n\
 \n\
 \n\
 \n\
@@ -1112,8 +1094,8 @@ function init() {\n\
     document.body.appendChild(canvas);\n\
 \n\
 \n\
-    pano.mesh3.material.uniforms.texture1.value.image = canvas;\n\
-    pano.mesh3.material.uniforms.texture1.value.needsUpdate = true;\n\
+    pano.mesh.material.uniforms.texture1.value.image = canvas;\n\
+    pano.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
 \n\
     pano.render();\n\
   }\n\
@@ -1121,8 +1103,8 @@ function init() {\n\
   _panoLoader.onPanoramaLoad = function() {\n\
     document.body.appendChild(this.canvas);\n\
 \n\
-    pano.mesh3.material.uniforms.texture0.value.image = this.canvas;\n\
-    pano.mesh3.material.uniforms.texture0.value.needsUpdate = true;\n\
+    pano.mesh.material.uniforms.texture0.value.image = this.canvas;\n\
+    pano.mesh.material.uniforms.texture0.value.needsUpdate = true;\n\
     //pano.markerMaterial.envMap.image = this.canvas;\n\
     //pano.markerMaterial.envMap.needsUpdate = true;\n\
 \n\
@@ -1152,7 +1134,9 @@ function init() {\n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
    //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
-   _panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
+   _panoLoader.setZoom(3);\n\
+   _panoLoader.load(new google.maps.LatLng(40.75672,-73.986466));\n\
 \n\
 \n\
 }\n\

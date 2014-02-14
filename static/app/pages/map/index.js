@@ -24,7 +24,7 @@ function PanoView(){
   this.canvas = document.createElement( 'canvas' );
   this.context = this.canvas.getContext( '2d' );
 
-  this.camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 1, 1100 );
+  this.camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 1, 1100 );
   this.target = new THREE.Vector3( 0, 0, 0 );
 
   this.controller = new THREE.FirstPersonControls(this.camera,document);
@@ -35,12 +35,11 @@ function PanoView(){
   this.mesh = null;
 
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);
-  this.markerGeo = new THREE.PlaneGeometry(4,4,1,1);
+  this.markerGeo = new THREE.PlaneGeometry(3,3,1,1);
   var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');
   
   this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });
   
-
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
 
@@ -51,7 +50,7 @@ function PanoView(){
   this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );  
 
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);
-  this.grassBillboardGeo = new THREE.PlaneGeometry(3,3,1,1);
+  this.grassBillboardGeo = new THREE.PlaneGeometry(2,2,1,1);
 
   this.init3D();
   this.initEvents();
@@ -66,16 +65,6 @@ p.init3D = function(){
   this.renderer.setSize( window.innerWidth, window.innerHeight );
   //this.renderer.sortObjects = true;
   //this.renderer.sortElements = true;
-
-  this.mesh = new THREE.Mesh(
-    new THREE.SphereGeometry( 500, 60, 40 ),
-    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), normalMap:new THREE.Texture(), side: THREE.DoubleSide } )
-  );
-
-  this.mesh2 = new THREE.Mesh(
-    new THREE.SphereGeometry( 490, 60, 40 ),
-    new THREE.MeshPhongMaterial( { map: new THREE.Texture(), side: THREE.DoubleSide, opacity:0.5,transparent:true } )
-  );
 
   var groundMaskUniforms = {
     texture0: { type: "t", value: new THREE.Texture() },
@@ -95,23 +84,16 @@ p.init3D = function(){
   var maskMaterial = new THREE.ShaderMaterial(params);
   //maskMaterial.uniforms.map = new THREE.Texture();
 
-  this.mesh3 = new THREE.Mesh(
-    new THREE.SphereGeometry( 800, 60, 40 ),
+  this.mesh = new THREE.Mesh(
+    new THREE.SphereGeometry( 500, 60, 40 ),
     maskMaterial
   );
 
-  //this.scene.add( this.mesh );
-  //this.scene.add( this.mesh2 );
-  this.scene.add( this.mesh3 );
-
+  this.scene.add( this.mesh );
 
   this.light = new THREE.AmbientLight();
   this.scene.add(this.light);
 
-
-
-  this.light2 = new THREE.DirectionalLight();
-  //this.scene.add(this.light2);
 
   this.controller.handleResize();
 
@@ -130,7 +112,7 @@ p.onSceneClick = function(event){
 
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 
-  var intersects = raycaster.intersectObjects([this.mesh3]);
+  var intersects = raycaster.intersectObjects([this.mesh]);
 
   if (intersects.length > 0) {
     
@@ -167,13 +149,13 @@ p.plotIn3D = function(point){
      marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);
 
     //grass billboard
-    for (var i = 0; i < 15; i++) {
+    for (var i = 0; i < 7; i++) {
       var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );
       billboard.rotation.x = Math.PI*-0.5;
       billboard.rotation.y = Math.PI*Math.random();
-      billboard.position.z = -1.5;
-      billboard.position.x = Math.random()*3-1.5;
-      billboard.position.y = Math.random()*3-1.5;
+      billboard.position.z = -1;
+      billboard.position.x = Math.random()*2-1;
+      billboard.position.y = Math.random()*2-1;
       marker.add(billboard);  
     };
   }
@@ -252,7 +234,7 @@ p.plotOnTexture = function(point){
   var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;
 
   //normal
-  var canvas = this.mesh3.material.uniforms.texture1.value.image;
+  var canvas = this.mesh.material.uniforms.texture1.value.image;
   var ctx = canvas.getContext('2d');
   var imgd = ctx.getImageData(Math.floor(u*canvas.width), Math.floor(v*canvas.height), 1, 1);
   var pix = imgd.data;
@@ -271,7 +253,7 @@ p.plotOnTexture = function(point){
   var y = Math.floor(v*h);
   
   ctx.fillRect(x,y,10,10);
-  this.mesh3.material.uniforms.texture1.value.needsUpdate = true;
+  this.mesh.material.uniforms.texture1.value.needsUpdate = true;
   
 }
 

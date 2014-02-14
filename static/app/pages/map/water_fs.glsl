@@ -13,7 +13,7 @@ uniform float fogFar;
 void main() {
 
   //diffuse
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;// + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;
 
   //normal
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;
