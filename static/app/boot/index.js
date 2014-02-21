@@ -35,11 +35,9 @@ function init() {
 
     context.putImageData(image, 0, 0);
 
-    document.body.appendChild(canvas);
+    //document.body.appendChild(canvas);
     pano.setDepthData(this.depthMap.depthMap);
-    pano.mesh.material.uniforms.texture2.value.image = canvas;
-    pano.mesh.material.uniforms.texture2.value.needsUpdate = true;
-
+    pano.setDepthMap(canvas);
 
 
     canvas = document.createElement("canvas");
@@ -73,18 +71,17 @@ function init() {
 
     document.body.appendChild(canvas);
 
+    pano.setNormalMap(canvas);
 
-    pano.mesh.material.uniforms.texture1.value.image = canvas;
-    pano.mesh.material.uniforms.texture1.value.needsUpdate = true;
+    pano.ready();
 
-    pano.render();
   }
 
   _panoLoader.onPanoramaLoad = function() {
-    document.body.appendChild(this.canvas);
+    //document.body.appendChild(this.canvas);
 
-    pano.mesh.material.uniforms.texture0.value.image = this.canvas;
-    pano.mesh.material.uniforms.texture0.value.needsUpdate = true;
+    pano.setPano(this.canvas);
+
     //pano.markerMaterial.envMap.image = this.canvas;
     //pano.markerMaterial.envMap.needsUpdate = true;
 
@@ -113,10 +110,13 @@ function init() {
 
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
   }*/
-   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
-   //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
    _panoLoader.setZoom(3);
-   _panoLoader.load(new google.maps.LatLng(40.75672,-73.986466));
+   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
+   //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
+   //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
+   //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));
+   //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));
+   //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
 
 
 }

@@ -12,20 +12,24 @@ uniform float fogFar;
 
 void main() {
 
-  //diffuse
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;// + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;
-
   //normal
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;
+  vec3 normalizedNormal = normalize(diffuseTex1);
+  float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);
+  DiffuseTerm = 1.0 - step(DiffuseTerm,0.95);
+  //diffuse
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;
+  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;
+  vec3 finalDiffuse = mix(diffuseTex0,vec3(0.0),grey);
+
 
   //depth
   vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;
 
   float thres = 1.0-step(0.1,diffuseTex1.b);
 
-  vec3 waterColor = diffuseTex0;
+  gl_FragColor = vec4( mix(finalDiffuse,diffuseTex2,0.2),1.0-DiffuseTerm*(1.0-diffuseTex2.x));
 
-  gl_FragColor = vec4( mix(waterColor,diffuseTex2,0.0),1.0);
 
   //float depth = gl_FragCoord.z / gl_FragCoord.w;
   //float fogFactor = smoothstep( fogNear, fogFar, depth );

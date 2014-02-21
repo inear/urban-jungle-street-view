@@ -722,6 +722,7 @@ function PanoView(){\n\
   this.context = this.canvas.getContext( '2d' );\n\
 \n\
   this.camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+\n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
@@ -734,17 +735,17 @@ function PanoView(){\n\
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
   this.markerGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
   var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
-  \n\
+\n\
   this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });\n\
-  \n\
+\n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
 \n\
   var wallMossMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-moss.png' );\n\
-  this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
+  this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );\n\
 \n\
-  var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-hang.png' );\n\
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );  \n\
+  var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );\n\
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );\n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
   this.grassBillboardGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
@@ -755,14 +756,51 @@ function PanoView(){\n\
 \n\
 var p = PanoView.prototype;\n\
 \n\
+p.ready = function(){\n\
+  this.createPlants();\n\
+  this.render();\n\
+}\n\
+\n\
+p.setPano = function( canvas ) {\n\
+  this.mesh.material.uniforms.texture0.value.image = canvas;\n\
+  this.mesh.material.uniforms.texture0.value.needsUpdate = true;\n\
+}\n\
+\n\
+p.setNormalMap = function( canvas ) {\n\
+  this.mesh.material.uniforms.texture1.value.image = canvas;\n\
+  this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
+}\n\
+\n\
+p.setDepthMap = function( canvas ) {\n\
+  this.mesh.material.uniforms.texture2.value.image = canvas;\n\
+  this.mesh.material.uniforms.texture2.value.needsUpdate = true;\n\
+}\n\
+\n\
+p.createPlants = function(){\n\
+  var totalPlants = 400;\n\
+  for (var i = 0; i < totalPlants; i++) {\n\
+\n\
+    var point = this.get3DPointFromUV(0.35 + 0.7*Math.random(),1/totalPlants*i);\n\
+\n\
+    this.plotIn3D(point);\n\
+    //this.plotOnTexture(point);\n\
+  };\n\
+}\n\
+\n\
 p.init3D = function(){\n\
 \n\
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
   this.renderer.autoClearColor = false;\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
-  //this.renderer.sortObjects = true;\n\
+  this.renderer.sortObjects = false;\n\
+  this.renderer.autoClear = false;\n\
   //this.renderer.sortElements = true;\n\
 \n\
+  this.composer = new WAGNER.Composer( this.renderer );\n\
+  this.vignettePass = new WAGNER.VignettePass();\n\
+  this.testPass = new WAGNER.MultiPassBloomPass();\n\
+  this.noisePass = new WAGNER.SepiaPass();\n\
+  this.dirtPass = new WAGNER.DirtPass();\n\
   var groundMaskUniforms = {\n\
     texture0: { type: \"t\", value: new THREE.Texture() },\n\
     texture1: { type: \"t\", value: new THREE.Texture() },\n\
@@ -774,7 +812,7 @@ p.init3D = function(){\n\
     vertexShader: require('./water_vs.glsl'),\n\
     fragmentShader: require('./water_fs.glsl'),\n\
     side: THREE.DoubleSide,\n\
-    transparent:false,\n\
+    transparent:true,\n\
     lights: false\n\
   }\n\
 \n\
@@ -782,19 +820,33 @@ p.init3D = function(){\n\
   //maskMaterial.uniforms.map = new THREE.Texture();\n\
 \n\
   this.mesh = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 500, 60, 40 ),\n\
+    new THREE.SphereGeometry( 500, 60, 140 ),\n\
     maskMaterial\n\
   );\n\
+\n\
 \n\
   this.scene.add( this.mesh );\n\
 \n\
   this.light = new THREE.AmbientLight();\n\
   this.scene.add(this.light);\n\
 \n\
+  //ground\n\
+  var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );\n\
+  mossTile.repeat.set(200,200);\n\
+  mossTile.wrapS = mossTile.wrapT = THREE.RepeatWrapping;\n\
+  mossTile.needsUpdate = true;\n\
+\n\
+  this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile}));\n\
+  this.ground.rotation.x = Math.PI*-0.5;\n\
+  this.ground.position.y = -20;\n\
+  this.scene.add(this.ground);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
   $('#app')[0].appendChild( this.renderer.domElement );\n\
+\n\
+  window.addEventListener('resize',this.onWindowResize.bind(this));\n\
+  this.onWindowResize();\n\
 }\n\
 \n\
 p.initEvents = function(){\n\
@@ -812,7 +864,7 @@ p.onSceneClick = function(event){\n\
   var intersects = raycaster.intersectObjects([this.mesh]);\n\
 \n\
   if (intersects.length > 0) {\n\
-    \n\
+\n\
     var normalizedPoint = intersects[0].point.clone().normalize();\n\
     var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
     var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
@@ -836,50 +888,62 @@ p.setNormalData = function( data ){\n\
 }\n\
 \n\
 p.plotIn3D = function(point){\n\
-  \n\
+\n\
   var pointData = this.getPointData(point);\n\
-  \n\
+\n\
   var marker;\n\
-  \n\
+\n\
+  if( pointData.distance > 40 ) return;\n\
+\n\
   if(pointData.normal.y < -0.7) {\n\
 \n\
-     marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+    marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+    marker.position.copy(point);\n\
+    marker.position.normalize().multiplyScalar(pointData.distance);\n\
+\n\
+    var v = marker.position.clone();\n\
+    v.add( pointData.normal );\n\
+    marker.lookAt(v);\n\
 \n\
     //grass billboard\n\
-    for (var i = 0; i < 7; i++) {\n\
+    for (var i = 0; i < 2; i++) {\n\
       var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
       billboard.rotation.x = Math.PI*-0.5;\n\
       billboard.rotation.y = Math.PI*Math.random();\n\
       billboard.position.z = -1;\n\
       billboard.position.x = Math.random()*2-1;\n\
       billboard.position.y = Math.random()*2-1;\n\
-      marker.add(billboard);  \n\
+      marker.add(billboard);\n\
     };\n\
   }\n\
   else {\n\
 \n\
-    marker = new THREE.Object3D();//new THREE.Mesh(this.markerGeo, this.wallMossMaterial);\n\
+    marker = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
 \n\
-    for (var i = 0; i < 6; i++) {\n\
+    marker.position.copy(point);\n\
+    marker.position.normalize().multiplyScalar(pointData.distance);\n\
+\n\
+    var v = marker.position.clone();\n\
+    v.add( pointData.normal );\n\
+    marker.lookAt(v.negate());\n\
+\n\
+    /*for (var i = 0; i < 1; i++) {\n\
       var billboard = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
       //billboard.rotation.x = Math.PI*-0.5;\n\
       billboard.rotation.y = Math.PI*Math.random();\n\
       //billboard.position.z = -1.5;\n\
       billboard.position.x = Math.random()*3-1.5;\n\
       billboard.position.z = Math.random()*3-1.5;\n\
-      marker.add(billboard);  \n\
-    };\n\
-    \n\
+      //billboard.scale.set(Math.random()*3,Math.random()*3,Math.random()*3);\n\
+      marker.add(billboard);\n\
+    };*/\n\
+\n\
   }\n\
 \n\
-  marker.position.copy(point);\n\
 \n\
-  marker.position.normalize().multiplyScalar(pointData.distance);\n\
-  var v = marker.position.clone();\n\
-  v.add( pointData.normal );\n\
-  marker.lookAt(v);\n\
+\n\
   this.scene.add(marker);\n\
-  \n\
+\n\
 }\n\
 \n\
 p.getPointData = function(point){\n\
@@ -891,7 +955,7 @@ p.getPointData = function(point){\n\
   //distance\n\
   var w = 512;\n\
   var h = 256;\n\
-  \n\
+\n\
   u = (u-0.25);\n\
   if( u < 0 ) {\n\
     u = 1+u;\n\
@@ -910,11 +974,11 @@ p.getPointData = function(point){\n\
     this.normalData[pixelIndex*3],\n\
     this.normalData[pixelIndex*3+1],\n\
     this.normalData[pixelIndex*3+2]);\n\
-  \n\
+\n\
   if(this.normalData[pixelIndex*3] === 0 && this.normalData[pixelIndex*3+1] === 0 && this.normalData[pixelIndex*3+2] === 0 ) {\n\
-    normal = normal.set(0,1,0); \n\
+    normal = normal.set(0,1,0);\n\
   }\n\
-  \n\
+\n\
   return {\n\
     distance: distance,\n\
     normal: normal\n\
@@ -922,10 +986,42 @@ p.getPointData = function(point){\n\
 \n\
 }\n\
 \n\
+p.get3DPointFromUV = function( u, v ){\n\
 \n\
+  var w = 512;\n\
+  var h = 256;\n\
+\n\
+  var x = Math.floor(u*w);\n\
+  var y = Math.floor(v*h);\n\
+\n\
+  var pixelIndex = y*w + x;\n\
+\n\
+  var DEG_TO_RAD = Math.PI/180;\n\
+\n\
+  var distance = this.depthData[pixelIndex];\n\
+  var normal = new THREE.Vector3(\n\
+    this.normalData[pixelIndex*3],\n\
+    this.normalData[pixelIndex*3+1],\n\
+    this.normalData[pixelIndex*3+2]);\n\
+\n\
+\n\
+  var lat = u * 180-90;\n\
+  var lon = v * 360-180;\n\
+  var r = Math.cos(DEG_TO_RAD *  lat);\n\
+\n\
+  //range between 0-1\n\
+  var pos = new THREE.Vector3();\n\
+  pos.x = (r * Math.cos(DEG_TO_RAD * lon) );\n\
+  pos.y = (Math.sin(DEG_TO_RAD * lat));\n\
+  pos.z = (r * Math.sin(DEG_TO_RAD * lon));\n\
+\n\
+  pos.normalize();\n\
+\n\
+  return pos;\n\
+};\n\
 \n\
 p.plotOnTexture = function(point){\n\
-  \n\
+\n\
   var normalizedPoint = point.clone().normalize();\n\
   var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
   var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
@@ -936,11 +1032,11 @@ p.plotOnTexture = function(point){\n\
   var imgd = ctx.getImageData(Math.floor(u*canvas.width), Math.floor(v*canvas.height), 1, 1);\n\
   var pix = imgd.data;\n\
   var normal = new THREE.Vector3(pix[0]/255-0.5,pix[1]/255-0.5,pix[2]/255-0.5);\n\
-  \n\
+\n\
   //distance\n\
   var w = 512;\n\
   var h = 256;\n\
-  \n\
+\n\
   u = (u-0.25);\n\
   if( u < 0 ) u = 1+u;\n\
 \n\
@@ -948,18 +1044,69 @@ p.plotOnTexture = function(point){\n\
 \n\
   var x = Math.floor(u*w);\n\
   var y = Math.floor(v*h);\n\
-  \n\
+\n\
   ctx.fillRect(x,y,10,10);\n\
   this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
-  \n\
+\n\
 }\n\
 \n\
 p.render = function(){\n\
+\n\
+ /*this.renderer.clear();\n\
+  this.mesh.visible = false;\n\
+  this.ground.visible = true;\n\
   this.renderer.render( this.scene, this.camera );\n\
+\n\
+  this.renderer.clear(false, true, false );\n\
+  this.mesh.visible = true;\n\
+  this.ground.visible = false;\n\
+  this.renderer.render( this.scene, this.camera );\n\
+*/\n\
+  this.renderer.autoClearColor = false;\n\
+\n\
+  this.renderer.clear();\n\
+  this.composer.reset();\n\
+\n\
+  this.mesh.visible = false;\n\
+  this.ground.visible = true;\n\
+  this.composer.render( this.scene, this.camera );\n\
+\n\
+\n\
+  this.composer.reset();\n\
+  this.renderer.clear(false, true, false );\n\
+  this.mesh.visible = true;\n\
+  this.ground.visible = false;\n\
+\n\
+  this.composer.render( this.scene, this.camera );\n\
+\n\
+  this.composer.pass( this.testPass );\n\
+\n\
+  this.composer.pass( this.dirtPass );\n\
+  this.composer.pass( this.noisePass );\n\
+  this.composer.pass( this.vignettePass );\n\
+  //this.composer.pass( this.zoomBlurPass );\n\
+  this.composer.toScreen();\n\
+\n\
+\n\
   this.controller.update(0.1);\n\
   this.time += 0.01;\n\
 \n\
   raf(this.render);\n\
+}\n\
+\n\
+p.onWindowResize  = function() {\n\
+\n\
+  var s = 1,\n\
+    w = window.innerWidth,\n\
+    h = window.innerHeight;\n\
+\n\
+  this.renderer.setSize( s * w, s * h );\n\
+  this.composer.setSize( w, h );\n\
+  console.log(\"scale\");\n\
+  //depthTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );\n\
+  //normalTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );\n\
+  //colorTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );\n\
+\n\
 }\n\
 //@ sourceURL=map/index.js"
 ));
@@ -995,20 +1142,24 @@ uniform float fogFar;\\n\
 \\n\
 void main() {\\n\
 \\n\
-  //diffuse\\n\
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;// + vec3(0.0,105.0/255.0,67.0/255.0)*0.4;\\n\
-\\n\
   //normal\\n\
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\\n\
+  vec3 normalizedNormal = normalize(diffuseTex1);\\n\
+  float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);\\n\
+  DiffuseTerm = 1.0 - step(DiffuseTerm,0.95);\\n\
+  //diffuse\\n\
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
+  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\\n\
+  vec3 finalDiffuse = mix(diffuseTex0,vec3(0.0),grey);\\n\
+\\n\
 \\n\
   //depth\\n\
   vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\\n\
 \\n\
   float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
 \\n\
-  vec3 waterColor = diffuseTex0;\\n\
+  gl_FragColor = vec4( mix(finalDiffuse,diffuseTex2,0.2),1.0-DiffuseTerm*(1.0-diffuseTex2.x));\\n\
 \\n\
-  gl_FragColor = vec4( mix(waterColor,diffuseTex2,0.0),1.0);\\n\
 \\n\
   //float depth = gl_FragCoord.z / gl_FragCoord.w;\\n\
   //float fogFactor = smoothstep( fogNear, fogFar, depth );\\n\
@@ -1055,11 +1206,9 @@ function init() {\n\
 \n\
     context.putImageData(image, 0, 0);\n\
 \n\
-    document.body.appendChild(canvas);\n\
+    //document.body.appendChild(canvas);\n\
     pano.setDepthData(this.depthMap.depthMap);\n\
-    pano.mesh.material.uniforms.texture2.value.image = canvas;\n\
-    pano.mesh.material.uniforms.texture2.value.needsUpdate = true;\n\
-\n\
+    pano.setDepthMap(canvas);\n\
 \n\
 \n\
     canvas = document.createElement(\"canvas\");\n\
@@ -1093,18 +1242,17 @@ function init() {\n\
 \n\
     document.body.appendChild(canvas);\n\
 \n\
+    pano.setNormalMap(canvas);\n\
 \n\
-    pano.mesh.material.uniforms.texture1.value.image = canvas;\n\
-    pano.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
+    pano.ready();\n\
 \n\
-    pano.render();\n\
   }\n\
 \n\
   _panoLoader.onPanoramaLoad = function() {\n\
-    document.body.appendChild(this.canvas);\n\
+    //document.body.appendChild(this.canvas);\n\
 \n\
-    pano.mesh.material.uniforms.texture0.value.image = this.canvas;\n\
-    pano.mesh.material.uniforms.texture0.value.needsUpdate = true;\n\
+    pano.setPano(this.canvas);\n\
+\n\
     //pano.markerMaterial.envMap.image = this.canvas;\n\
     //pano.markerMaterial.envMap.needsUpdate = true;\n\
 \n\
@@ -1133,10 +1281,13 @@ function init() {\n\
 \n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
-   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
-   //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
    _panoLoader.setZoom(3);\n\
-   _panoLoader.load(new google.maps.LatLng(40.75672,-73.986466));\n\
+   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
+   //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
 \n\
 \n\
 }\n\
