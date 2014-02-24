@@ -749,10 +749,12 @@ function PanoView(){\n\
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );\n\
 \n\
   var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );\n\
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, opacity:0.7, depthWrite:false, side: THREE.DoubleSide } );\n\
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, alphaTest:0.9, opacity:1, side: THREE.DoubleSide } );\n\
+\n\
+  this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x47c46d});\n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
-  this.grassBillboardGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
+  this.grassBillboardGeo = new THREE.PlaneGeometry(2,4,1,1);\n\
 \n\
   this.init3D();\n\
   this.initEvents();\n\
@@ -763,6 +765,7 @@ var p = PanoView.prototype;\n\
 p.ready = function(){\n\
   this.createEdgeFoliage();\n\
   this.createPlants();\n\
+  this.createClimbingFoliages();\n\
   this.render();\n\
 \n\
 }\n\
@@ -825,6 +828,28 @@ p.createEdgeFoliage = function(){\n\
   };\n\
 }\n\
 \n\
+p.createClimbingFoliages = function(){\n\
+  var totalPlants = MAP_WIDTH/16;\n\
+  var normal = new THREE.Vector3(0,-1,0);\n\
+  var created = false;\n\
+  for (var i = 0; i < totalPlants; i++) {\n\
+\n\
+    var point = this.get3DPointAtEdge(i*16, 100);\n\
+\n\
+    if( point ){\n\
+      var reflectedPoint = point.clone();\n\
+      reflectedPoint.z *= -1;\n\
+\n\
+      created = this.plotIn3D(reflectedPoint,'climb');\n\
+\n\
+      if( created ) {\n\
+        this.plotOnTexture(point);\n\
+      }\n\
+\n\
+    }\n\
+  };\n\
+}\n\
+\n\
 p.init3D = function(){\n\
 \n\
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
@@ -867,8 +892,11 @@ p.init3D = function(){\n\
 \n\
   this.scene.add( this.mesh );\n\
 \n\
-  this.light = new THREE.AmbientLight();\n\
+  this.light = new THREE.DirectionalLight(0xffffff,0.4);\n\
+\n\
   this.scene.add(this.light);\n\
+\n\
+  this.scene.add( new THREE.AmbientLight(0x222222,0.4));\n\
 \n\
   //ground\n\
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );\n\
@@ -959,7 +987,7 @@ p.get3DPointFromUV = function( u, v ){\n\
   return pos;\n\
 };\n\
 \n\
-p.get3DPointAtEdge = function( textureX ) {\n\
+p.get3DPointAtEdge = function( textureX , heightThreshold ) {\n\
 \n\
   var canvas = this.normalMapCanvas;\n\
   var ctx = canvas.getContext('2d');\n\
@@ -976,20 +1004,50 @@ p.get3DPointAtEdge = function( textureX ) {\n\
   /*var compareR = 128;\n\
   var compareG = 128;\n\
   var compareB = 128;*/\n\
-\n\
+  var rangeStartAt = null;\n\
   var pixel = 0;\n\
+  var foundColor = false;\n\
+  var result;\n\
+\n\
   for (var py = len-4; py > 0; py-=4) {\n\
     //test pixel\n\
     pixel++;\n\
 \n\
-    dist = Math.abs(colorDistance( compareR,compareG,compareB, data[py],data[py+1],data[py+2]));\n\
+    if( !foundColor ) {\n\
 \n\
-    if(dist > 58 ) {\n\
-      var point = this.get3DPointFromUV((pixel-3)/MAP_HEIGHT,textureX/MAP_WIDTH);\n\
-      return point;\n\
-      break;\n\
+      dist = Math.abs(colorDistance( compareR,compareG,compareB, data[py],data[py+1],data[py+2]));\n\
+\n\
+      if(dist > 58 ) {\n\
+\n\
+        rangeStartAt = py;\n\
+\n\
+        result = this.get3DPointFromUV((pixel)/MAP_HEIGHT,textureX/MAP_WIDTH);\n\
+\n\
+        //check\n\
+        foundColor = true;\n\
+\n\
+      }\n\
     }\n\
+\n\
   };\n\
+\n\
+\n\
+  if( foundColor ) {\n\
+    if( heightThreshold ) {\n\
+\n\
+      py = rangeStartAt - heightThreshold*4;\n\
+      //test at threshold value\n\
+\n\
+      dist = Math.abs(colorDistance( 128,128,128, data[py],data[py+1],data[py+2]));\n\
+\n\
+      if( dist !== 0 ) {\n\
+        return result;\n\
+      }\n\
+    } else  {\n\
+      return result;\n\
+    }\n\
+\n\
+  }\n\
 \n\
   function colorDistance(colorRed,colorGreen,colorBlue,pixelRed,pixelGreen,pixelBlue){\n\
 \n\
@@ -1058,61 +1116,131 @@ p.getPointData = function(point){\n\
 \n\
 }\n\
 \n\
-p.plotIn3D = function( point, forceType, forceNormal ){\n\
+p.plotIn3D = function( point, forceType ){\n\
 \n\
+  var plant;\n\
+\n\
+  //get info from normalmap and depthmap\n\
   var pointData = this.getPointData(point);\n\
 \n\
-  var marker;\n\
+  var distanceToCamera = pointData.distance;\n\
+  var pointInWorld = point.normalize().multiplyScalar(distanceToCamera);\n\
+  var normalInWorld = pointData.normal;\n\
 \n\
-  if( pointData.distance > 140 ) return;\n\
+  var up = new THREE.Vector3(0,-1,0);\n\
 \n\
-  if(pointData.normal.y < -0.7 || forceType === 'ground') {\n\
+  if( pointData.distance > 140 ) {\n\
+    return;\n\
+  }\n\
 \n\
-    marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
-    marker.position.copy(point);\n\
-    marker.position.normalize().multiplyScalar(pointData.distance);\n\
+  if( forceType === 'climb' ) {\n\
 \n\
-    var v = marker.position.clone();\n\
+    plant = this.createClimbingPlant();\n\
 \n\
-    if( forceNormal ) {\n\
-      v.add( forceNormal );\n\
-    }\n\
-    else {\n\
-      v.add( pointData.normal );\n\
-    }\n\
+  }\n\
+  else if( normalInWorld.y < -0.7 || forceType === 'ground') {\n\
+    plant = this.createGrass({disableCracks:true});\n\
+    plant.rotation.x = Math.PI*0.5;\n\
+    //make rotation\n\
+    /*var v = plant.position.clone();\n\
+    v.add( up );\n\
+    plant.lookAt(v);\n\
+*/\n\
 \n\
-    marker.lookAt(v);\n\
-\n\
-    //grass billboard\n\
-    for (var i = 0; i < 3; i++) {\n\
-      var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
-      billboard.rotation.x = Math.PI*-0.5;\n\
-      billboard.rotation.y = Math.PI*Math.random();\n\
-      billboard.position.z = -1;\n\
-      billboard.position.x = Math.random()*0.5-0.25;\n\
-      billboard.position.y = Math.random()*0.5-0.25;\n\
-      marker.add(billboard);\n\
-    };\n\
   }\n\
   else {\n\
+    plant = this.createWallPlant();\n\
 \n\
-    marker = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
-\n\
-    marker.position.copy(point);\n\
-    marker.position.normalize().multiplyScalar(pointData.distance);\n\
-\n\
-    var v = marker.position.clone();\n\
-    v.add( pointData.normal );\n\
-    marker.lookAt(v);\n\
-\n\
+    //make rotation\n\
+    var v = plant.position.clone();\n\
+    v.add( normalInWorld );\n\
+    plant.lookAt(v);\n\
   }\n\
 \n\
-  this.scene.add(marker);\n\
+  //set position\n\
 \n\
-  return marker;\n\
+  plant.position.copy(pointInWorld);\n\
+\n\
+  this.scene.add(plant);\n\
+\n\
+  return plant;\n\
 \n\
 }\n\
 \n\
+p.createWallPlant = function(){\n\
+  var plant = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
+\n\
+  return plant;\n\
+}\n\
+\n\
+p.createGrass = function( opts ){\n\
+\n\
+  var plant;\n\
+\n\
+  if( opts.disableCracks ) {\n\
+    plant = new THREE.Object3D();\n\
+  }\n\
+  else {\n\
+    plant = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+  }\n\
+\n\
+  //grass billboard sprites\n\
+  for (var i = 0; i < 3; i++) {\n\
+    var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
+    billboard.rotation.x = Math.PI*-0.5;\n\
+    billboard.rotation.y = Math.PI*Math.random();\n\
+\n\
+    billboard.position.z = -1;\n\
+    billboard.position.x = Math.random()*2-1;\n\
+    billboard.position.y = Math.random()*2-1;\n\
+\n\
+    //billboard.scale.y = 2;\n\
+    plant.add(billboard);\n\
+  };\n\
+\n\
+  return plant;\n\
+}\n\
+\n\
+p.createClimbingPlant = function(){\n\
+\n\
+  // smooth my curve over this many points\n\
+  var numPoints = 30;\n\
+\n\
+  var path = getPath();\n\
+\n\
+  var spline = new THREE.SplineCurve3(path);\n\
+\n\
+  function getPath() {\n\
+\n\
+    var list = [];\n\
+    var even = Math.random()>0.5?-1:1;\n\
+    var  pos,x,y,z;\n\
+\n\
+    z = 0;\n\
+\n\
+    list.push( new THREE.Vector3(0,0,0) );\n\
+\n\
+    var totalCurves = 10 + Math.random()*10;\n\
+\n\
+    for (var i =  0; i < totalCurves; i++) {\n\
+      x = ((1-i/totalCurves)*Math.random()*0.2 * i) * even ;\n\
+\n\
+      even *= -1;\n\
+\n\
+      y = 0.1  + i/1.3 ;\n\
+      pos = new THREE.Vector3(x,y,z);\n\
+      list.push( pos );\n\
+    };\n\
+    return list;\n\
+  }\n\
+\n\
+  //tube = new THREE.TubeGeometry(extrudePath, segments, 2, radiusSegments, closed2, debug);\n\
+  var tubeGeo = new THREE.TubeGeometry(spline, 100, 0.01+Math.random()*0.05, 4, false,true);\n\
+  var mesh = new THREE.Mesh(tubeGeo, this.climbingPlantMaterial );\n\
+  //var line = new THREE.Line(geometry, material);\n\
+\n\
+  return mesh;\n\
+}\n\
 \n\
 p.render = function(){\n\
 \n\
@@ -1327,9 +1455,9 @@ function init() {\n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
    _panoLoader.setZoom(3);\n\
-   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
    //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
-   //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
+   _panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
    //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
    //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
    //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
