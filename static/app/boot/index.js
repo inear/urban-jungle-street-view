@@ -117,6 +117,7 @@ function init() {
    //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));
    //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));
    //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
+   //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));
 
 
 }

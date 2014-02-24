@@ -409,7 +409,7 @@ WAGNER.NoisePass = function() {
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Denoise Pass constructor' );
 	this.loadShader( 'noise-fs.glsl', function() {
-		this.shader.uniforms.amount.value = .01;
+		this.shader.uniforms.amount.value = .14;
 	} );
 
 }
@@ -526,7 +526,7 @@ WAGNER.MultiPassBloomPass = function() {
 	this.blendPass = new WAGNER.BlendPass();
 	this.zoomBlur = new WAGNER.ZoomBlurPass();
 
-	this.params[ 'blurAmount' ] = 10;
+	this.params[ 'blurAmount' ] = 20;
 	this.params[ 'applyZoomBlur' ] = false;
 
 }

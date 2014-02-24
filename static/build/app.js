@@ -713,6 +713,7 @@ function PanoView(){\n\
 \n\
   this.time = 0;\n\
 \n\
+  this.normalMapCanvas = null;\n\
   this.depthData = null;\n\
 \n\
   this.render = this.render.bind(this);\n\
@@ -733,7 +734,7 @@ function PanoView(){\n\
   this.mesh = null;\n\
 \n\
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
-  this.markerGeo = new THREE.PlaneGeometry(3,3,1,1);\n\
+  this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
   var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
 \n\
   this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });\n\
@@ -745,7 +746,7 @@ function PanoView(){\n\
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );\n\
 \n\
   var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );\n\
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, depthWrite:false, side: THREE.DoubleSide } );\n\
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, transparent:true, opacity:0.7, depthWrite:false, side: THREE.DoubleSide } );\n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
   this.grassBillboardGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
@@ -757,8 +758,10 @@ function PanoView(){\n\
 var p = PanoView.prototype;\n\
 \n\
 p.ready = function(){\n\
+  this.createEdgeFoliage();\n\
   this.createPlants();\n\
   this.render();\n\
+\n\
 }\n\
 \n\
 p.setPano = function( canvas ) {\n\
@@ -767,6 +770,7 @@ p.setPano = function( canvas ) {\n\
 }\n\
 \n\
 p.setNormalMap = function( canvas ) {\n\
+  this.normalMapCanvas = canvas\n\
   this.mesh.material.uniforms.texture1.value.image = canvas;\n\
   this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
 }\n\
@@ -777,13 +781,44 @@ p.setDepthMap = function( canvas ) {\n\
 }\n\
 \n\
 p.createPlants = function(){\n\
-  var totalPlants = 400;\n\
+  var totalPlants = 200;\n\
+  var created = false;\n\
+  for (var i = 0; i < totalPlants; i++) {\n\
+    var point = this.get3DPointFromUV(0.35 + 0.3*Math.random(),1/totalPlants*i);\n\
+\n\
+\n\
+    var reflectedPoint = point.clone();\n\
+    reflectedPoint.z *= -1;\n\
+\n\
+    created = this.plotIn3D(reflectedPoint);\n\
+\n\
+    if( created ) {\n\
+      this.plotOnTexture(point);\n\
+    }\n\
+\n\
+  };\n\
+}\n\
+\n\
+\n\
+p.createEdgeFoliage = function(){\n\
+  var totalPlants = 512/4;\n\
+  var normal = new THREE.Vector3(0,-1,0);\n\
+  var created = false;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
 \n\
-    var point = this.get3DPointFromUV(0.35 + 0.7*Math.random(),1/totalPlants*i);\n\
+    var point = this.get3DPointAtEdge(i*4);\n\
+    if( point ){\n\
+      var reflectedPoint = point.clone();\n\
+      reflectedPoint.z *= -1;\n\
+      //reflectedPoint.z *= -1;\n\
 \n\
-    this.plotIn3D(point);\n\
-    //this.plotOnTexture(point);\n\
+      created = this.plotIn3D(reflectedPoint,'ground',normal);\n\
+\n\
+      if( created ) {\n\
+        this.plotOnTexture(point);\n\
+      }\n\
+\n\
+    }\n\
   };\n\
 }\n\
 \n\
@@ -791,6 +826,7 @@ p.init3D = function(){\n\
 \n\
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
   this.renderer.autoClearColor = false;\n\
+  this.renderer.setClearColor(0xffffff,1);\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
   this.renderer.sortObjects = false;\n\
   this.renderer.autoClear = false;\n\
@@ -799,7 +835,7 @@ p.init3D = function(){\n\
   this.composer = new WAGNER.Composer( this.renderer );\n\
   this.vignettePass = new WAGNER.VignettePass();\n\
   this.testPass = new WAGNER.MultiPassBloomPass();\n\
-  this.noisePass = new WAGNER.SepiaPass();\n\
+  this.noisePass = new WAGNER.NoisePass();\n\
   this.dirtPass = new WAGNER.DirtPass();\n\
   var groundMaskUniforms = {\n\
     texture0: { type: \"t\", value: new THREE.Texture() },\n\
@@ -824,6 +860,7 @@ p.init3D = function(){\n\
     maskMaterial\n\
   );\n\
 \n\
+  //this.mesh.scale.z = -1;\n\
 \n\
   this.scene.add( this.mesh );\n\
 \n\
@@ -840,6 +877,20 @@ p.init3D = function(){\n\
   this.ground.rotation.x = Math.PI*-0.5;\n\
   this.ground.position.y = -20;\n\
   this.scene.add(this.ground);\n\
+\n\
+  //tree\n\
+  var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree.png' );\n\
+  var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
+  tree.position.set(30,0,5);\n\
+  tree.lookAt(this.camera.position.clone());\n\
+  this.scene.add(tree);\n\
+\n\
+  //tree2\n\
+  var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );\n\
+  var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
+  tree.position.set(-20,0,0);\n\
+  tree.lookAt(this.camera.position.clone());\n\
+  this.scene.add(tree);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -887,112 +938,14 @@ p.setNormalData = function( data ){\n\
   this.normalData = data;\n\
 }\n\
 \n\
-p.plotIn3D = function(point){\n\
-\n\
-  var pointData = this.getPointData(point);\n\
-\n\
-  var marker;\n\
-\n\
-  if( pointData.distance > 40 ) return;\n\
-\n\
-  if(pointData.normal.y < -0.7) {\n\
-\n\
-    marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
-    marker.position.copy(point);\n\
-    marker.position.normalize().multiplyScalar(pointData.distance);\n\
-\n\
-    var v = marker.position.clone();\n\
-    v.add( pointData.normal );\n\
-    marker.lookAt(v);\n\
-\n\
-    //grass billboard\n\
-    for (var i = 0; i < 2; i++) {\n\
-      var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
-      billboard.rotation.x = Math.PI*-0.5;\n\
-      billboard.rotation.y = Math.PI*Math.random();\n\
-      billboard.position.z = -1;\n\
-      billboard.position.x = Math.random()*2-1;\n\
-      billboard.position.y = Math.random()*2-1;\n\
-      marker.add(billboard);\n\
-    };\n\
-  }\n\
-  else {\n\
-\n\
-    marker = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
-\n\
-    marker.position.copy(point);\n\
-    marker.position.normalize().multiplyScalar(pointData.distance);\n\
-\n\
-    var v = marker.position.clone();\n\
-    v.add( pointData.normal );\n\
-    marker.lookAt(v.negate());\n\
-\n\
-    /*for (var i = 0; i < 1; i++) {\n\
-      var billboard = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
-      //billboard.rotation.x = Math.PI*-0.5;\n\
-      billboard.rotation.y = Math.PI*Math.random();\n\
-      //billboard.position.z = -1.5;\n\
-      billboard.position.x = Math.random()*3-1.5;\n\
-      billboard.position.z = Math.random()*3-1.5;\n\
-      //billboard.scale.set(Math.random()*3,Math.random()*3,Math.random()*3);\n\
-      marker.add(billboard);\n\
-    };*/\n\
-\n\
-  }\n\
-\n\
-\n\
-\n\
-  this.scene.add(marker);\n\
-\n\
-}\n\
-\n\
-p.getPointData = function(point){\n\
-\n\
-  var normalizedPoint = point.clone().normalize();\n\
-  var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
-  var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
-\n\
-  //distance\n\
-  var w = 512;\n\
-  var h = 256;\n\
-\n\
-  u = (u-0.25);\n\
-  if( u < 0 ) {\n\
-    u = 1+u;\n\
-  }\n\
-\n\
-  v = (1-v);\n\
-\n\
-  var x = Math.floor(u*w);\n\
-  var y = Math.floor(v*h);\n\
-\n\
-  var pixelIndex = y*w + x;\n\
-\n\
-  var distance = this.depthData[pixelIndex];\n\
-\n\
- var normal = new THREE.Vector3(\n\
-    this.normalData[pixelIndex*3],\n\
-    this.normalData[pixelIndex*3+1],\n\
-    this.normalData[pixelIndex*3+2]);\n\
-\n\
-  if(this.normalData[pixelIndex*3] === 0 && this.normalData[pixelIndex*3+1] === 0 && this.normalData[pixelIndex*3+2] === 0 ) {\n\
-    normal = normal.set(0,1,0);\n\
-  }\n\
-\n\
-  return {\n\
-    distance: distance,\n\
-    normal: normal\n\
-  }\n\
-\n\
-}\n\
 \n\
 p.get3DPointFromUV = function( u, v ){\n\
 \n\
   var w = 512;\n\
   var h = 256;\n\
 \n\
-  var x = Math.floor(u*w);\n\
-  var y = Math.floor(v*h);\n\
+  var y = Math.floor(u*h);\n\
+  var x = Math.floor(v*w);\n\
 \n\
   var pixelIndex = y*w + x;\n\
 \n\
@@ -1020,11 +973,53 @@ p.get3DPointFromUV = function( u, v ){\n\
   return pos;\n\
 };\n\
 \n\
+p.get3DPointAtEdge = function( textureX ) {\n\
+\n\
+  var canvas = this.normalMapCanvas;\n\
+  var ctx = canvas.getContext('2d');\n\
+  var data = ctx.getImageData(Math.floor(textureX), 0, 1, 255).data;\n\
+  var len = data.length;\n\
+  var dist,pixelIndex;\n\
+  var compareR = 128;\n\
+  var compareG = 0;\n\
+  var compareB = 126;\n\
+  /*var compareR = 128;\n\
+  var compareG = 128;\n\
+  var compareB = 128;*/\n\
+\n\
+  var pixel = 0;\n\
+  for (var py = len-4; py > 0; py-=4) {\n\
+    //test pixel\n\
+    pixel++;\n\
+\n\
+    dist = Math.abs(colorDistance( compareR,compareG,compareB, data[py],data[py+1],data[py+2]));\n\
+\n\
+    if(dist > 58 ) {\n\
+      var point = this.get3DPointFromUV((pixel-3)/256,textureX/512);\n\
+      return point;\n\
+      break;\n\
+    }\n\
+  };\n\
+\n\
+  function colorDistance(colorRed,colorGreen,colorBlue,pixelRed,pixelGreen,pixelBlue){\n\
+\n\
+    var diffR,diffG,diffB;\n\
+\n\
+    // distance to color\n\
+    diffR=( colorRed - pixelRed );\n\
+    diffG=( colorGreen - pixelGreen );\n\
+    diffB=( colorBlue - pixelBlue );\n\
+    return(Math.sqrt(diffR*diffR + diffG*diffG + diffB*diffB));\n\
+\n\
+  }\n\
+}\n\
+\n\
 p.plotOnTexture = function(point){\n\
 \n\
   var normalizedPoint = point.clone().normalize();\n\
-  var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
-  var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;\n\
+\n\
+  var u = 0.5 + Math.atan2(normalizedPoint.z, normalizedPoint.x) / (2 * Math.PI);\n\
+  var v = 0.5 - Math.asin(normalizedPoint.y) / Math.PI;\n\
 \n\
   //normal\n\
   var canvas = this.mesh.material.uniforms.texture1.value.image;\n\
@@ -1037,18 +1032,107 @@ p.plotOnTexture = function(point){\n\
   var w = 512;\n\
   var h = 256;\n\
 \n\
-  u = (u-0.25);\n\
-  if( u < 0 ) u = 1+u;\n\
-\n\
-  v = (1-v);\n\
+  //u = (u+0.12);\n\
+  //if( u > 1 ) u = 1-u;\n\
 \n\
   var x = Math.floor(u*w);\n\
   var y = Math.floor(v*h);\n\
 \n\
-  ctx.fillRect(x,y,10,10);\n\
-  this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
+  ctx.fillRect(x,y,1,1);\n\
+  //this.mesh.material.uniforms.texture1.value.needsUpdate = true;\n\
 \n\
 }\n\
+\n\
+\n\
+p.getPointData = function(point){\n\
+\n\
+  var normalizedPoint = point.clone().normalize();\n\
+\n\
+  var u = 0.5 + Math.atan2(normalizedPoint.z, normalizedPoint.x) / (2 * Math.PI);\n\
+  var v = 0.5 - Math.asin(normalizedPoint.y) / Math.PI;\n\
+\n\
+  //distance\n\
+  var w = 512;\n\
+  var h = 256;\n\
+\n\
+  var x = Math.floor((1-u)*w);\n\
+  var y = Math.floor(v*h);\n\
+\n\
+  var pixelIndex = y*w + x;\n\
+\n\
+  var distance = this.depthData[pixelIndex];\n\
+\n\
+ var normal = new THREE.Vector3(\n\
+    this.normalData[pixelIndex*3],\n\
+    this.normalData[pixelIndex*3+1],\n\
+    this.normalData[pixelIndex*3+2]);\n\
+\n\
+ /* if(this.normalData[pixelIndex*3] === 0 && this.normalData[pixelIndex*3+1] === 0 && this.normalData[pixelIndex*3+2] === 0 ) {\n\
+    normal = normal.set(0,1,0);\n\
+  }\n\
+*/\n\
+  return {\n\
+    distance: distance,\n\
+    normal: normal\n\
+  }\n\
+\n\
+}\n\
+\n\
+p.plotIn3D = function(point, forceType, forceNormal ){\n\
+\n\
+  var pointData = this.getPointData(point);\n\
+\n\
+  var marker;\n\
+\n\
+  if( pointData.distance > 40 ) return;\n\
+\n\
+  if(pointData.normal.y < -0.7 || forceType === 'ground') {\n\
+\n\
+    marker = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+    marker.position.copy(point);\n\
+    marker.position.normalize().multiplyScalar(pointData.distance);\n\
+\n\
+    var v = marker.position.clone();\n\
+\n\
+    if( forceNormal ) {\n\
+      v.add( forceNormal );\n\
+    }\n\
+    else {\n\
+      v.add( pointData.normal );\n\
+    }\n\
+\n\
+    marker.lookAt(v);\n\
+\n\
+    //grass billboard\n\
+    for (var i = 0; i < 3; i++) {\n\
+      var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
+      billboard.rotation.x = Math.PI*-0.5;\n\
+      billboard.rotation.y = Math.PI*Math.random();\n\
+      billboard.position.z = -1;\n\
+      billboard.position.x = Math.random()*0.5-0.25;\n\
+      billboard.position.y = Math.random()*0.5-0.25;\n\
+      marker.add(billboard);\n\
+    };\n\
+  }\n\
+  else {\n\
+\n\
+    marker = new THREE.Mesh(this.hangBillboardGeo, this.wallHangMaterial );\n\
+\n\
+    marker.position.copy(point);\n\
+    marker.position.normalize().multiplyScalar(pointData.distance);\n\
+\n\
+    var v = marker.position.clone();\n\
+    v.add( pointData.normal );\n\
+    marker.lookAt(v);\n\
+\n\
+  }\n\
+\n\
+  this.scene.add(marker);\n\
+\n\
+  return marker;\n\
+\n\
+}\n\
+\n\
 \n\
 p.render = function(){\n\
 \n\
@@ -1079,11 +1163,11 @@ p.render = function(){\n\
 \n\
   this.composer.render( this.scene, this.camera );\n\
 \n\
-  this.composer.pass( this.testPass );\n\
 \n\
+  //this.composer.pass( this.noisePass );\n\
+  this.composer.pass( this.testPass );\n\
   this.composer.pass( this.dirtPass );\n\
-  this.composer.pass( this.noisePass );\n\
-  this.composer.pass( this.vignettePass );\n\
+  //this.composer.pass( this.vignettePass );\n\
   //this.composer.pass( this.zoomBlurPass );\n\
   this.composer.toScreen();\n\
 \n\
@@ -1147,6 +1231,7 @@ void main() {\\n\
   vec3 normalizedNormal = normalize(diffuseTex1);\\n\
   float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);\\n\
   DiffuseTerm = 1.0 - step(DiffuseTerm,0.95);\\n\
+\\n\
   //diffuse\\n\
   vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
   float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\\n\
@@ -1157,7 +1242,7 @@ void main() {\\n\
   vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\\n\
 \\n\
   float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
-\\n\
+  //vec4(diffuseTex1,1.0);\\n\
   gl_FragColor = vec4( mix(finalDiffuse,diffuseTex2,0.2),1.0-DiffuseTerm*(1.0-diffuseTex2.x));\\n\
 \\n\
 \\n\
@@ -1288,6 +1373,7 @@ function init() {\n\
    //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
    //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
    //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
+   //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
 \n\
 \n\
 }\n\
