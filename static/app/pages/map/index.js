@@ -1,4 +1,7 @@
 var raf = require('raf');
+var DEG_TO_RAD = Math.PI/180;
+var MAP_WIDTH = 512;
+var MAP_HEIGHT = 256;
 
 module.exports = PanoView;
 
@@ -104,7 +107,7 @@ p.createPlants = function(){
 
 
 p.createEdgeFoliage = function(){
-  var totalPlants = 512/4;
+  var totalPlants = MAP_WIDTH/4;
   var normal = new THREE.Vector3(0,-1,0);
   var created = false;
   for (var i = 0; i < totalPlants; i++) {
@@ -244,23 +247,6 @@ p.setNormalData = function( data ){
 
 p.get3DPointFromUV = function( u, v ){
 
-  var w = 512;
-  var h = 256;
-
-  var y = Math.floor(u*h);
-  var x = Math.floor(v*w);
-
-  var pixelIndex = y*w + x;
-
-  var DEG_TO_RAD = Math.PI/180;
-
-  var distance = this.depthData[pixelIndex];
-  var normal = new THREE.Vector3(
-    this.normalData[pixelIndex*3],
-    this.normalData[pixelIndex*3+1],
-    this.normalData[pixelIndex*3+2]);
-
-
   var lat = u * 180-90;
   var lon = v * 360-180;
   var r = Math.cos(DEG_TO_RAD *  lat);
@@ -283,9 +269,13 @@ p.get3DPointAtEdge = function( textureX ) {
   var data = ctx.getImageData(Math.floor(textureX), 0, 1, 255).data;
   var len = data.length;
   var dist,pixelIndex;
+
+  //ground
   var compareR = 128;
   var compareG = 0;
   var compareB = 126;
+
+  //sky
   /*var compareR = 128;
   var compareG = 128;
   var compareB = 128;*/
@@ -298,7 +288,7 @@ p.get3DPointAtEdge = function( textureX ) {
     dist = Math.abs(colorDistance( compareR,compareG,compareB, data[py],data[py+1],data[py+2]));
 
     if(dist > 58 ) {
-      var point = this.get3DPointFromUV((pixel-3)/256,textureX/512);
+      var point = this.get3DPointFromUV((pixel-3)/MAP_HEIGHT,textureX/MAP_WIDTH);
       return point;
       break;
     }
@@ -309,9 +299,9 @@ p.get3DPointAtEdge = function( textureX ) {
     var diffR,diffG,diffB;
 
     // distance to color
-    diffR=( colorRed - pixelRed );
-    diffG=( colorGreen - pixelGreen );
-    diffB=( colorBlue - pixelBlue );
+    diffR = ( colorRed - pixelRed );
+    diffG = ( colorGreen - pixelGreen );
+    diffB = ( colorBlue - pixelBlue );
     return(Math.sqrt(diffR*diffR + diffG*diffG + diffB*diffB));
 
   }
@@ -331,15 +321,8 @@ p.plotOnTexture = function(point){
   var pix = imgd.data;
   var normal = new THREE.Vector3(pix[0]/255-0.5,pix[1]/255-0.5,pix[2]/255-0.5);
 
-  //distance
-  var w = 512;
-  var h = 256;
-
-  //u = (u+0.12);
-  //if( u > 1 ) u = 1-u;
-
-  var x = Math.floor(u*w);
-  var y = Math.floor(v*h);
+  var x = Math.floor(u*MAP_WIDTH);
+  var y = Math.floor(v*MAP_HEIGHT);
 
   ctx.fillRect(x,y,1,1);
   //this.mesh.material.uniforms.texture1.value.needsUpdate = true;
@@ -354,18 +337,15 @@ p.getPointData = function(point){
   var u = 0.5 + Math.atan2(normalizedPoint.z, normalizedPoint.x) / (2 * Math.PI);
   var v = 0.5 - Math.asin(normalizedPoint.y) / Math.PI;
 
-  //distance
-  var w = 512;
-  var h = 256;
 
-  var x = Math.floor((1-u)*w);
-  var y = Math.floor(v*h);
+  var x = Math.floor((1-u)*MAP_WIDTH);
+  var y = Math.floor(v*MAP_HEIGHT);
 
-  var pixelIndex = y*w + x;
+  var pixelIndex = y*MAP_WIDTH + x;
 
   var distance = this.depthData[pixelIndex];
 
- var normal = new THREE.Vector3(
+  var normal = new THREE.Vector3(
     this.normalData[pixelIndex*3],
     this.normalData[pixelIndex*3+1],
     this.normalData[pixelIndex*3+2]);
@@ -381,13 +361,13 @@ p.getPointData = function(point){
 
 }
 
-p.plotIn3D = function(point, forceType, forceNormal ){
+p.plotIn3D = function( point, forceType, forceNormal ){
 
   var pointData = this.getPointData(point);
 
   var marker;
 
-  if( pointData.distance > 40 ) return;
+  if( pointData.distance > 140 ) return;
 
   if(pointData.normal.y < -0.7 || forceType === 'ground') {
 
@@ -439,16 +419,6 @@ p.plotIn3D = function(point, forceType, forceNormal ){
 
 p.render = function(){
 
- /*this.renderer.clear();
-  this.mesh.visible = false;
-  this.ground.visible = true;
-  this.renderer.render( this.scene, this.camera );
-
-  this.renderer.clear(false, true, false );
-  this.mesh.visible = true;
-  this.ground.visible = false;
-  this.renderer.render( this.scene, this.camera );
-*/
   this.renderer.autoClearColor = false;
 
   this.renderer.clear();
@@ -458,7 +428,6 @@ p.render = function(){
   this.ground.visible = true;
   this.composer.render( this.scene, this.camera );
 
-
   this.composer.reset();
   this.renderer.clear(false, true, false );
   this.mesh.visible = true;
@@ -466,14 +435,9 @@ p.render = function(){
 
   this.composer.render( this.scene, this.camera );
 
-
-  //this.composer.pass( this.noisePass );
   this.composer.pass( this.testPass );
   this.composer.pass( this.dirtPass );
-  //this.composer.pass( this.vignettePass );
-  //this.composer.pass( this.zoomBlurPass );
   this.composer.toScreen();
-
 
   this.controller.update(0.1);
   this.time += 0.01;
@@ -489,9 +453,5 @@ p.onWindowResize  = function() {
 
   this.renderer.setSize( s * w, s * h );
   this.composer.setSize( w, h );
-  console.log("scale");
-  //depthTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );
-  //normalTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );
-  //colorTexture = WAGNER.Pass.prototype.getOfflineTexture( w, h );
 
 }
