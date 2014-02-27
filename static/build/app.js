@@ -735,6 +735,7 @@ function PanoView(){\n\
   this.scene.add( this.camera );\n\
 \n\
   this.mesh = null;\n\
+  this.foliageContainer = null\n\
 \n\
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
   this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
@@ -896,6 +897,7 @@ p.init3D = function(){\n\
 \n\
   //this.mesh.scale.z = -1;\n\
 \n\
+\n\
   this.scene.add( this.mesh );\n\
 \n\
   this.light = new THREE.DirectionalLight(0xffffff,0.8);\n\
@@ -904,6 +906,8 @@ p.init3D = function(){\n\
 \n\
   this.scene.add( new THREE.AmbientLight(0x999999,0.2));\n\
 \n\
+  this.foliageContainer = new THREE.Object3D();\n\
+  this.scene.add(this.foliageContainer);\n\
 \n\
   //ground\n\
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );\n\
@@ -1168,7 +1172,7 @@ p.plotIn3D = function( point, forceType ){\n\
 \n\
   plant.position.copy(pointInWorld);\n\
 \n\
-  this.scene.add(plant);\n\
+  this.foliageContainer.add(plant);\n\
 \n\
   return plant;\n\
 \n\
@@ -1272,12 +1276,14 @@ p.render = function(){\n\
   this.composer.reset();\n\
 \n\
   this.mesh.visible = false;\n\
+  this.foliageContainer.traverse( this.setVisibleHidden );\n\
   this.ground.visible = true;\n\
   this.composer.render( this.scene, this.camera );\n\
 \n\
   this.composer.reset();\n\
   this.renderer.clear(false, true, false );\n\
   this.mesh.visible = true;\n\
+  this.foliageContainer.traverse( this.setVisibleShown );\n\
   this.ground.visible = false;\n\
 \n\
   this.composer.render( this.scene, this.camera );\n\
@@ -1291,6 +1297,14 @@ p.render = function(){\n\
   this.time += 0.01;\n\
 \n\
   raf(this.render);\n\
+}\n\
+\n\
+p.setVisibleHidden = function(child){\n\
+  child.visible = false;\n\
+}\n\
+\n\
+p.setVisibleShown = function(child){\n\
+  child.visible = true;\n\
 }\n\
 \n\
 p.onWindowResize  = function() {\n\

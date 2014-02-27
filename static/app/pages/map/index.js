@@ -38,6 +38,7 @@ function PanoView(){
   this.scene.add( this.camera );
 
   this.mesh = null;
+  this.foliageContainer = null
 
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);
   this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);
@@ -199,6 +200,7 @@ p.init3D = function(){
 
   //this.mesh.scale.z = -1;
 
+
   this.scene.add( this.mesh );
 
   this.light = new THREE.DirectionalLight(0xffffff,0.8);
@@ -207,6 +209,8 @@ p.init3D = function(){
 
   this.scene.add( new THREE.AmbientLight(0x999999,0.2));
 
+  this.foliageContainer = new THREE.Object3D();
+  this.scene.add(this.foliageContainer);
 
   //ground
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );
@@ -471,7 +475,7 @@ p.plotIn3D = function( point, forceType ){
 
   plant.position.copy(pointInWorld);
 
-  this.scene.add(plant);
+  this.foliageContainer.add(plant);
 
   return plant;
 
@@ -575,12 +579,14 @@ p.render = function(){
   this.composer.reset();
 
   this.mesh.visible = false;
+  this.foliageContainer.traverse( this.setVisibleHidden );
   this.ground.visible = true;
   this.composer.render( this.scene, this.camera );
 
   this.composer.reset();
   this.renderer.clear(false, true, false );
   this.mesh.visible = true;
+  this.foliageContainer.traverse( this.setVisibleShown );
   this.ground.visible = false;
 
   this.composer.render( this.scene, this.camera );
@@ -594,6 +600,14 @@ p.render = function(){
   this.time += 0.01;
 
   raf(this.render);
+}
+
+p.setVisibleHidden = function(child){
+  child.visible = false;
+}
+
+p.setVisibleShown = function(child){
+  child.visible = true;
 }
 
 p.onWindowResize  = function() {
