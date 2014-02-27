@@ -16,7 +16,7 @@ void main() {
   vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;
   vec3 normalizedNormal = normalize(diffuseTex1);
   float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);
-  DiffuseTerm = 1.0 - step(DiffuseTerm,0.95);
+  DiffuseTerm = 1.0 - step(DiffuseTerm,0.97);
 
   //diffuse
   vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;

@@ -110,10 +110,13 @@ function init() {
 
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
   }*/
-   _panoLoader.setZoom(3);
-   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
+   _panoLoader.setZoom(1);
+   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
    //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
-   _panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
+
+   //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));
+
+   //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
    //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));
    //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));
    //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));

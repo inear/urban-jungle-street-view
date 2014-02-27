@@ -43,7 +43,7 @@ function PanoView(){
   this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);
   var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');
 
-  this.markerMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: tex, transparent:true,depthWrite:false });
+  this.markerMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex,alphaTest: 0.8 });
 
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
   this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
@@ -52,11 +52,15 @@ function PanoView(){
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );
 
   var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, alphaTest:0.9, opacity:1, side: THREE.DoubleSide } );
+  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );
 
+  var climbingLeafTex = THREE.ImageUtils.loadTexture( 'assets/images/climbing.png' );
+  this.climbingPlantLeafMaterial = new THREE.MeshBasicMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});
   this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x47c46d});
 
+
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);
+  this.climbingBillboardGeo = new THREE.PlaneGeometry(2.6,3.8,1,1);
   this.grassBillboardGeo = new THREE.PlaneGeometry(2,4,1,1);
 
   this.init3D();
@@ -132,12 +136,13 @@ p.createEdgeFoliage = function(){
 }
 
 p.createClimbingFoliages = function(){
-  var totalPlants = MAP_WIDTH/16;
+  var divider = 32;
+  var totalPlants = MAP_WIDTH/divider;
   var normal = new THREE.Vector3(0,-1,0);
   var created = false;
   for (var i = 0; i < totalPlants; i++) {
 
-    var point = this.get3DPointAtEdge(i*16, 100);
+    var point = this.get3DPointAtEdge(i*divider, 50);
 
     if( point ){
       var reflectedPoint = point.clone();
@@ -165,9 +170,10 @@ p.init3D = function(){
 
   this.composer = new WAGNER.Composer( this.renderer );
   this.vignettePass = new WAGNER.VignettePass();
-  this.testPass = new WAGNER.MultiPassBloomPass();
+  this.bloomPass = new WAGNER.MultiPassBloomPass();
   this.noisePass = new WAGNER.NoisePass();
   this.dirtPass = new WAGNER.DirtPass();
+
   var groundMaskUniforms = {
     texture0: { type: "t", value: new THREE.Texture() },
     texture1: { type: "t", value: new THREE.Texture() },
@@ -195,11 +201,13 @@ p.init3D = function(){
 
   this.scene.add( this.mesh );
 
-  this.light = new THREE.DirectionalLight(0xffffff,0.4);
+  this.light = new THREE.DirectionalLight(0xffffff,0.2);
 
   this.scene.add(this.light);
 
   this.scene.add( new THREE.AmbientLight(0x222222,0.4));
+
+  this.plant
 
   //ground
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );
@@ -443,18 +451,18 @@ p.plotIn3D = function( point, forceType ){
   }
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {
     plant = this.createGrass({disableCracks:true});
-    plant.rotation.x = Math.PI*0.5;
+    //plant.rotation.x = Math.PI*0.5;
     //make rotation
     /*var v = plant.position.clone();
     v.add( up );
-    plant.lookAt(v);
-*/
+    plant.lookAt(v);*/
 
   }
   else {
     plant = this.createWallPlant();
 
     //make rotation
+
     var v = plant.position.clone();
     v.add( normalInWorld );
     plant.lookAt(v);
@@ -486,14 +494,14 @@ p.createGrass = function( opts ){
   else {
     plant = new THREE.Mesh(this.markerGeo, this.markerMaterial);
   }
-
+  plant.rotation.x = Math.PI*0.5;
   //grass billboard sprites
   for (var i = 0; i < 3; i++) {
     var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );
     billboard.rotation.x = Math.PI*-0.5;
     billboard.rotation.y = Math.PI*Math.random();
 
-    billboard.position.z = -1;
+    billboard.position.z =  -1;
     billboard.position.x = Math.random()*2-1;
     billboard.position.y = Math.random()*2-1;
 
@@ -506,11 +514,11 @@ p.createGrass = function( opts ){
 
 p.createClimbingPlant = function(){
 
+  var self = this;
+
   // smooth my curve over this many points
   var numPoints = 30;
-
   var path = getPath();
-
   var spline = new THREE.SplineCurve3(path);
 
   function getPath() {
@@ -523,24 +531,39 @@ p.createClimbingPlant = function(){
 
     list.push( new THREE.Vector3(0,0,0) );
 
-    var totalCurves = 10 + Math.random()*10;
+    var totalCurves = 5 + Math.random()*20;
 
     for (var i =  0; i < totalCurves; i++) {
       x = ((1-i/totalCurves)*Math.random()*0.2 * i) * even ;
 
       even *= -1;
 
-      y = 0.1  + i/1.3 ;
+      y = 0.1 + i/1.3;
       pos = new THREE.Vector3(x,y,z);
+
       list.push( pos );
     };
     return list;
   }
 
   //tube = new THREE.TubeGeometry(extrudePath, segments, 2, radiusSegments, closed2, debug);
-  var tubeGeo = new THREE.TubeGeometry(spline, 100, 0.01+Math.random()*0.05, 4, false,true);
+  var tubeGeo = new THREE.TubeGeometry(spline, 100, 0.1+Math.random()*0.05, 4, false,true);
   var mesh = new THREE.Mesh(tubeGeo, this.climbingPlantMaterial );
   //var line = new THREE.Line(geometry, material);
+
+  var len = path.length;
+  for ( i =  3; i < len; i+= Math.floor(Math.random()*3+2) ) {
+
+    var plant = new THREE.Mesh( self.climbingBillboardGeo, self.climbingPlantLeafMaterial );
+    plant.position.copy(path[i]);
+
+    plant.rotation.z = Math.random();
+    plant.rotation.y = Math.random();
+    plant.scale.set(0.6,0.6,0.6);
+
+    mesh.add(plant);
+  }
+
 
   return mesh;
 }
@@ -563,8 +586,9 @@ p.render = function(){
 
   this.composer.render( this.scene, this.camera );
 
-  this.composer.pass( this.testPass );
   this.composer.pass( this.dirtPass );
+  this.composer.pass( this.bloomPass );
+
   this.composer.toScreen();
 
   this.controller.update(0.1);

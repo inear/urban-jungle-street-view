@@ -4727,7 +4727,7 @@ THREE.Matrix4.prototype = {
 
 			if ( throwOnInvertible || false ) {
 
-				throw new Error( msg ); 
+				throw new Error( msg );
 
 			} else {
 
@@ -5345,7 +5345,7 @@ THREE.Ray.prototype = {
 	},
 
 	isIntersectionBox: function () {
-		
+
 		var v = new THREE.Vector3();
 
 		return function ( box ) {
@@ -5369,18 +5369,18 @@ THREE.Ray.prototype = {
 		var origin = this.origin;
 
 		if (invdirx >= 0) {
-				
+
 			tmin = (box.min.x - origin.x) * invdirx;
 			tmax = (box.max.x - origin.x) * invdirx;
 
-		} else { 
+		} else {
 
 			tmin = (box.max.x - origin.x) * invdirx;
 			tmax = (box.min.x - origin.x) * invdirx;
-		}			
+		}
 
 		if (invdiry >= 0) {
-		
+
 			tymin = (box.min.y - origin.y) * invdiry;
 			tymax = (box.max.y - origin.y) * invdiry;
 
@@ -5394,13 +5394,13 @@ THREE.Ray.prototype = {
 
 		// These lines also handle the case where tmin or tmax is NaN
 		// (result of 0 * Infinity). x !== x returns true if x is NaN
-		
+
 		if (tymin > tmin || tmin !== tmin ) tmin = tymin;
 
 		if (tymax < tmax || tmax !== tmax ) tmax = tymax;
 
 		if (invdirz >= 0) {
-		
+
 			tzmin = (box.min.z - origin.z) * invdirz;
 			tzmax = (box.max.z - origin.z) * invdirz;
 
@@ -5502,9 +5502,9 @@ THREE.Ray.prototype = {
 
 			// Ray intersects triangle.
 			return this.at( QdN / DdN, optionalTarget );
-	
+
 		}
-	
+
 	}(),
 
 	applyMatrix4: function ( matrix4 ) {
@@ -5584,8 +5584,8 @@ THREE.Sphere.prototype = {
 
 			this.radius = Math.sqrt( maxRadiusSq );
 
-			return this;			
- 		
+			return this;
+
  		};
 
 	}(),
@@ -5808,11 +5808,11 @@ THREE.Frustum.prototype = {
 		return function( box ) {
 
 			var planes = this.planes;
-			
+
 			for ( var i = 0; i < 6 ; i ++ ) {
-			
+
 				var plane = planes[i];
-				
+
 				p1.x = plane.normal.x > 0 ? box.min.x : box.max.x;
 				p2.x = plane.normal.x > 0 ? box.max.x : box.min.x;
 				p1.y = plane.normal.y > 0 ? box.min.y : box.max.y;
@@ -5822,13 +5822,13 @@ THREE.Frustum.prototype = {
 
 				var d1 = plane.distanceToPoint( p1 );
 				var d2 = plane.distanceToPoint( p2 );
-				
+
 				// if both outside plane, no intersection
 
 				if ( d1 < 0 && d2 < 0 ) {
-					
+
 					return false;
-		
+
 				}
 			}
 
@@ -6054,7 +6054,7 @@ THREE.Plane.prototype = {
 			// http://www.songho.ca/opengl/gl_normaltransform.html
 			var normalMatrix = optionalNormalMatrix || m1.getNormalMatrix( matrix );
 			var newNormal = v1.copy( this.normal ).applyMatrix3( normalMatrix );
-			
+
 			var newCoplanarPoint = this.coplanarPoint( v2 );
 			newCoplanarPoint.applyMatrix4( matrix );
 
@@ -6100,7 +6100,7 @@ THREE.Math = {
 	generateUUID: function () {
 
 		// http://www.broofa.com/Tools/Math.uuid.htm
-		
+
 		var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
 		var uuid = new Array(36);
 		var rnd = 0, r;
@@ -6110,15 +6110,15 @@ THREE.Math = {
 			for ( var i = 0; i < 36; i ++ ) {
 
 				if ( i == 8 || i == 13 || i == 18 || i == 23 ) {
-			
+
 					uuid[ i ] = '-';
-			
+
 				} else if ( i == 14 ) {
-			
+
 					uuid[ i ] = '4';
-			
+
 				} else {
-			
+
 					if (rnd <= 0x02) rnd = 0x2000000 + (Math.random()*0x1000000)|0;
 					r = rnd & 0xf;
 					rnd = rnd >> 4;
@@ -6126,7 +6126,7 @@ THREE.Math = {
 
 				}
 			}
-			
+
 			return uuid.join('');
 
 		};
@@ -6905,8 +6905,8 @@ THREE.EventDispatcher.prototype = {
 			}
 
 			// Check boundingBox before continuing
-			
-			inverseMatrix.getInverse( object.matrixWorld );  
+
+			inverseMatrix.getInverse( object.matrixWorld );
 			localRay.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
 
 			if ( geometry.boundingBox !== null ) {
@@ -6917,7 +6917,7 @@ THREE.EventDispatcher.prototype = {
 
 				}
 
-			} 
+			}
 
 			if ( geometry instanceof THREE.BufferGeometry ) {
 
@@ -6947,7 +6947,7 @@ THREE.EventDispatcher.prototype = {
 						for ( var i = start, il = start + count; i < il; i += 3 ) {
 
 							a = index + indices[ i ];
-							b = index + indices[ i + 1 ]; 
+							b = index + indices[ i + 1 ];
 							c = index + indices[ i + 2 ];
 
 							vA.set(
@@ -6966,10 +6966,10 @@ THREE.EventDispatcher.prototype = {
 								positions[ c * 3 + 2 ]
 							);
 
-							
+
 							if ( material.side === THREE.BackSide ) {
-							
-								var intersectionPoint = localRay.intersectTriangle( vC, vB, vA, true ); 
+
+								var intersectionPoint = localRay.intersectTriangle( vC, vB, vA, true );
 
 							} else {
 
@@ -7029,10 +7029,10 @@ THREE.EventDispatcher.prototype = {
 							positions[ c * 3 + 2 ]
 						);
 
-						
+
 						if ( material.side === THREE.BackSide ) {
-							
-							var intersectionPoint = localRay.intersectTriangle( vC, vB, vA, true ); 
+
+							var intersectionPoint = localRay.intersectTriangle( vC, vB, vA, true );
 
 						} else {
 
@@ -7126,11 +7126,11 @@ THREE.EventDispatcher.prototype = {
 					}
 
 					if ( material.side === THREE.BackSide ) {
-							
+
 						var intersectionPoint = localRay.intersectTriangle( c, b, a, true );
 
 					} else {
-								
+
 						var intersectionPoint = localRay.intersectTriangle( a, b, c, material.side !== THREE.DoubleSide );
 
 					}
@@ -7170,13 +7170,13 @@ THREE.EventDispatcher.prototype = {
 
 			sphere.copy( geometry.boundingSphere );
 			sphere.applyMatrix4( object.matrixWorld );
-			
+
 			if ( raycaster.ray.isIntersectionSphere( sphere ) === false ) {
 
 				return intersects;
 
 			}
-			
+
 			inverseMatrix.getInverse( object.matrixWorld );
 			localRay.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
 
@@ -7339,31 +7339,31 @@ THREE.Object3D = function () {
 THREE.Object3D.prototype = {
 
 	constructor: THREE.Object3D,
-	
-	get rotation () { 
-		return this._rotation; 
+
+	get rotation () {
+		return this._rotation;
 	},
 
 	set rotation ( value ) {
-		
+
 		this._rotation = value;
 		this._rotation._quaternion = this._quaternion;
 		this._quaternion._euler = this._rotation;
 		this._rotation._updateQuaternion();
-		
+
 	},
 
-	get quaternion () { 
-		return this._quaternion; 
+	get quaternion () {
+		return this._quaternion;
 	},
-	
+
 	set quaternion ( value ) {
-		
+
 		this._quaternion = value;
 		this._quaternion._euler = this._rotation;
 		this._rotation._quaternion = this._quaternion;
 		this._quaternion._updateEuler();
-		
+
 	},
 
 	get eulerOrder () {
@@ -9900,7 +9900,7 @@ THREE.OrthographicCamera.prototype.clone = function () {
 	camera.right = this.right;
 	camera.top = this.top;
 	camera.bottom = this.bottom;
-	
+
 	camera.near = this.near;
 	camera.far = this.far;
 
@@ -10042,7 +10042,7 @@ THREE.PerspectiveCamera.prototype.clone = function () {
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
  */
- 
+
 THREE.Light = function ( hex ) {
 
 	THREE.Object3D.call( this );
@@ -11571,7 +11571,7 @@ THREE.GeometryLoader.prototype = {
 
 	parse: function ( json ) {
 
-		
+
 
 	}
 
@@ -14692,7 +14692,7 @@ THREE.SkinnedMesh = function ( geometry, material, useVertexTexture ) {
 			bone.name = gbone.name;
 			bone.position.set( p[0], p[1], p[2] );
 			bone.quaternion.set( q[0], q[1], q[2], q[3] );
-		
+
 			if ( s !== undefined ) {
 
 				bone.scale.set( s[0], s[1], s[2] );
@@ -15462,7 +15462,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 	_canvasHeight = _canvas.height,
 	_canvasWidthHalf = Math.floor( _canvasWidth / 2 ),
 	_canvasHeightHalf = Math.floor( _canvasHeight / 2 ),
-	
+
 	_context = _canvas.getContext( '2d' ),
 
 	_clearColor = new THREE.Color( 0x000000 ),
@@ -16333,7 +16333,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 			return;
 
-		}	
+		}
 
 		// http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
 
@@ -16574,7 +16574,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 /**
  * Shader chunks for WebLG Shader library
- * 
+ *
  * @author alteredq / http://alteredqualia.com/
  * @author mrdoob / http://mrdoob.com/
  * @author mikael emtinger / http://gomo.se/
@@ -18196,7 +18196,7 @@ THREE.ShaderChunk = {
 						"vec3 shadowZ = vec3( shadowCoord.z );",
 						"shadowKernel[0] = vec3(lessThan(depthKernel[0], shadowZ ));",
 						"shadowKernel[0] *= vec3(0.25);",
-													
+
 						"shadowKernel[1] = vec3(lessThan(depthKernel[1], shadowZ ));",
 						"shadowKernel[1] *= vec3(0.25);",
 
@@ -20326,7 +20326,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 				if ( attributes[ key ].buffer !== undefined ) {
 
 					_gl.deleteBuffer( attributes[ key ].buffer );
-		
+
 				}
 
 			}
@@ -22360,7 +22360,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 						attributePointer = programAttributes[ attributeName ];
 						attributeItem = geometryAttributes[ attributeName ];
-						
+
 						if ( attributePointer >= 0 ) {
 
 							if ( attributeItem ) {
@@ -22412,7 +22412,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 					attributePointer = programAttributes[ attributeName ];
 					attributeItem = geometryAttributes[ attributeName ];
-					
+
 					if ( attributePointer >= 0 ) {
 
 						if ( attributeItem ) {
@@ -22459,7 +22459,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 					attributePointer = programAttributes[ attributeName ];
 					attributeItem = geometryAttributes[ attributeName ];
-					
+
 					if ( attributePointer >= 0 ) {
 
 						if ( attributeItem ) {
@@ -25781,7 +25781,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 						_gl.texImage2D( _gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, glFormat, glType, cubeImage[ i ] );
 
 					} else {
-						
+
 						var mipmap, mipmaps = cubeImage[ i ].mipmaps;
 
 						for( var j = 0, jl = mipmaps.length; j < jl; j ++ ) {
@@ -26286,7 +26286,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 		_gl.blendFunc( _gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA );
 
 		_gl.viewport( _viewportX, _viewportY, _viewportWidth, _viewportHeight );
-		
+
 		_gl.clearColor( _clearColor.r, _clearColor.g, _clearColor.b, _clearAlpha );
 
 	};
@@ -27313,9 +27313,9 @@ THREE.ImageUtils = {
 
 			default:
 
-				if( header[off_RGBBitCount] ==32 
+				if( header[off_RGBBitCount] ==32
 					&& header[off_RBitMask]&0xff0000
-					&& header[off_GBitMask]&0xff00 
+					&& header[off_GBitMask]&0xff00
 					&& header[off_BBitMask]&0xff
 					&& header[off_ABitMask]&0xff000000  ) {
 					isRGBAUncompressed = true;
@@ -27362,7 +27362,7 @@ THREE.ImageUtils = {
 					var dataLength = Math.max( 4, width ) / 4 * Math.max( 4, height ) / 4 * blockBytes;
 					var byteArray = new Uint8Array( buffer, dataOffset, dataLength );
 				}
-				
+
 				var mipmap = { "data": byteArray, "width": width, "height": height };
 				dds.mipmaps.push( mipmap );
 
@@ -27781,7 +27781,7 @@ THREE.FontUtils = {
 
 THREE.FontUtils.generateShapes = function( text, parameters ) {
 
-	// Parameters 
+	// Parameters
 
 	parameters = parameters || {};
 
@@ -28363,7 +28363,7 @@ THREE.CurvePath = function () {
 
 	this.curves = [];
 	this.bends = [];
-	
+
 	this.autoClose = false; // Automatically closes the path
 };
 
@@ -28387,11 +28387,11 @@ THREE.CurvePath.prototype.closePath = function() {
 	// Add a line curve if start and end of lines are not connected
 	var startPoint = this.curves[0].getPoint(0);
 	var endPoint = this.curves[this.curves.length-1].getPoint(1);
-	
+
 	if (!startPoint.equals(endPoint)) {
 		this.curves.push( new THREE.LineCurve(endPoint, startPoint) );
 	}
-	
+
 };
 
 // To get accurate point with reference to
@@ -29114,7 +29114,7 @@ THREE.Path.prototype.getPoints = function( divisions, closedPath ) {
 			//console.log(points);
 
 		  break;
-		  
+
 		case THREE.PathActions.ELLIPSE:
 
 			var aX = args[ 0 ], aY = args[ 1 ],
@@ -30634,7 +30634,7 @@ THREE.Animation.prototype.update = function ( deltaTimeMS ) {
 
 	currentTime = this.currentTime = this.currentTime % this.data.length;
 
-	
+
 	frame = parseInt( Math.min( currentTime * this.data.fps, this.data.length * this.data.fps ), 10 );
 
 
@@ -30654,7 +30654,7 @@ THREE.Animation.prototype.update = function ( deltaTimeMS ) {
 			nextKey = animationCache.nextKey[ type ];
 
 			// switch keys?
-			
+
 			if ( nextKey.time <= unloopedCurrentTime ) {
 
 				// did we loop?
@@ -31031,7 +31031,7 @@ THREE.KeyFrameAnimation.prototype.stop = function() {
 	// reset JIT matrix and remove cache
 
 	for ( var h = 0; h < this.data.hierarchy.length; h++ ) {
-        
+
         var obj = this.hierarchy[ h ];
 		var node = this.data.hierarchy[ h ];
 
@@ -32837,7 +32837,7 @@ THREE.ShapeGeometry.prototype.addShape = function ( shape, options ) {
  * @author bhouston / http://exocortex.com
  */
 
-// points - to create a closed torus, one must use a set of points 
+// points - to create a closed torus, one must use a set of points
 //    like so: [ a, b, c, d, a ], see first is the same as last.
 // segments - the number of circumference segments to create
 // phiStart - the starting radian
@@ -33495,6 +33495,8 @@ THREE.TubeGeometry = function( path, segments, radius, radialSegments, closed ) 
 		tangent = tangents[ i ];
 		normal = normals[ i ];
 		binormal = binormals[ i ];
+
+    this.radius *= 0.98
 
 		for ( j = 0; j < this.radialSegments; j++ ) {
 
@@ -34546,7 +34548,7 @@ THREE.DirectionalLightHelper = function ( light, size ) {
 THREE.DirectionalLightHelper.prototype = Object.create( THREE.Object3D.prototype );
 
 THREE.DirectionalLightHelper.prototype.dispose = function () {
-	
+
 	this.lightPlane.geometry.dispose();
 	this.lightPlane.material.dispose();
 	this.targetLine.geometry.dispose();
@@ -34884,7 +34886,7 @@ THREE.PointLightHelper = function ( light, sphereSize ) {
 THREE.PointLightHelper.prototype = Object.create( THREE.Mesh.prototype );
 
 THREE.PointLightHelper.prototype.dispose = function () {
-	
+
 	this.geometry.dispose();
 	this.material.dispose();
 };
@@ -34933,7 +34935,7 @@ THREE.SpotLightHelper = function ( light ) {
 	geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
 	var material = new THREE.MeshBasicMaterial( { wireframe: true, fog: false } );
-	
+
 	this.cone = new THREE.Mesh( geometry, material );
 	this.add( this.cone );
 
@@ -36567,7 +36569,7 @@ THREE.SpritePlugin = function () {
 		_renderer = renderer;
 
 		vertices = new Float32Array( [
-			- 0.5, - 0.5, 0, 0, 
+			- 0.5, - 0.5, 0, 0,
 			  0.5, - 0.5, 1, 0,
 			  0.5,   0.5, 1, 1,
 			- 0.5,   0.5, 0, 1
