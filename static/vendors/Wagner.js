@@ -526,7 +526,7 @@ WAGNER.MultiPassBloomPass = function() {
 	this.blendPass = new WAGNER.BlendPass();
 	this.zoomBlur = new WAGNER.ZoomBlurPass();
 
-	this.params[ 'blurAmount' ] = 10;
+	this.params[ 'blurAmount' ] = 20;
 	this.params[ 'applyZoomBlur' ] = false;
 
 }

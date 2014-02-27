@@ -732,6 +732,7 @@ function PanoView(){\n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
 \n\
   this.scene = new THREE.Scene();\n\
+\n\
   this.scene.add( this.camera );\n\
 \n\
   this.mesh = null;\n\
@@ -739,9 +740,9 @@ function PanoView(){\n\
 \n\
   //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
   this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
-  var tex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
+  var cracksTex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
 \n\
-  this.markerMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex,alphaTest: 0.8 });\n\
+  this.markerMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});\n\
 \n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
@@ -769,8 +770,8 @@ var p = PanoView.prototype;\n\
 \n\
 p.ready = function(){\n\
   this.createEdgeFoliage();\n\
-  this.createPlants();\n\
   this.createClimbingFoliages();\n\
+  this.createPlants();\n\
   this.render();\n\
 \n\
 }\n\
@@ -891,7 +892,7 @@ p.init3D = function(){\n\
   //maskMaterial.uniforms.map = new THREE.Texture();\n\
 \n\
   this.mesh = new THREE.Mesh(\n\
-    new THREE.SphereGeometry( 500, 60, 140 ),\n\
+    new THREE.SphereGeometry( 500, 40, 40 ),\n\
     maskMaterial\n\
   );\n\
 \n\
@@ -1150,7 +1151,7 @@ p.plotIn3D = function( point, forceType ){\n\
 \n\
   }\n\
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {\n\
-    plant = this.createGrass({disableCracks:true});\n\
+    plant = this.createGrass({disableCracks:forceType === 'ground'});\n\
     //plant.rotation.x = Math.PI*0.5;\n\
     //make rotation\n\
     /*var v = plant.position.clone();\n\
@@ -1188,24 +1189,31 @@ p.createGrass = function( opts ){\n\
 \n\
   var plant;\n\
 \n\
-  if( opts.disableCracks ) {\n\
+  if( opts.disableCracks === true ) {\n\
     plant = new THREE.Object3D();\n\
   }\n\
   else {\n\
     plant = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
   }\n\
+\n\
   plant.rotation.x = Math.PI*0.5;\n\
   //grass billboard sprites\n\
   for (var i = 0; i < 3; i++) {\n\
     var billboard = new THREE.Mesh(this.grassBillboardGeo, this.grassMaterial );\n\
+\n\
+    if( i === 0 ) {\n\
+      billboard.lookAt(this.camera.position)\n\
+    }\n\
+\n\
     billboard.rotation.x = Math.PI*-0.5;\n\
     billboard.rotation.y = Math.PI*Math.random();\n\
 \n\
-    billboard.position.z =  -1;\n\
-    billboard.position.x = Math.random()*2-1;\n\
-    billboard.position.y = Math.random()*2-1;\n\
 \n\
-    //billboard.scale.y = 2;\n\
+\n\
+    billboard.position.z =  -1.9;\n\
+    //billboard.position.x = Math.random()*2-1;\n\
+    //billboard.position.y = Math.random()*2-1;\n\
+\n\
     plant.add(billboard);\n\
   };\n\
 \n\
@@ -1249,7 +1257,6 @@ p.createClimbingPlant = function(){\n\
   //tube = new THREE.TubeGeometry(extrudePath, segments, 2, radiusSegments, closed2, debug);\n\
   var tubeGeo = new THREE.TubeGeometry(spline, 100, 0.1+Math.random()*0.05, 4, false,true);\n\
   var mesh = new THREE.Mesh(tubeGeo, this.climbingPlantMaterial );\n\
-  //var line = new THREE.Line(geometry, material);\n\
 \n\
   var len = path.length;\n\
   for ( i =  3; i < len; i+= Math.floor(Math.random()*3+2) ) {\n\
@@ -1491,15 +1498,15 @@ function init() {\n\
 \n\
     _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
   }*/\n\
-   _panoLoader.setZoom(1);\n\
-   _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+   _panoLoader.setZoom(3);\n\
+   //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
    //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
    //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));\n\
 \n\
    //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
    //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
-   //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
+   _panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
    //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
    //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
 \n\
