@@ -760,7 +760,7 @@ function PanoView(){\n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
   this.climbingBillboardGeo = new THREE.PlaneGeometry(2.6,3.8,1,1);\n\
-  this.grassBillboardGeo = new THREE.PlaneGeometry(2,4,1,1);\n\
+  this.grassBillboardGeo = new THREE.PlaneGeometry(4,4,1,1);\n\
 \n\
   this.init3D();\n\
   this.initEvents();\n\
@@ -924,14 +924,14 @@ p.init3D = function(){\n\
   //tree\n\
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
-  tree.position.set(30,0,5);\n\
+  tree.position.set(40,0,5);\n\
   tree.lookAt(this.camera.position.clone());\n\
   this.scene.add(tree);\n\
 \n\
   //tree2\n\
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
-  tree.position.set(-20,0,0);\n\
+  tree.position.set(-40,0,0);\n\
   tree.lookAt(this.camera.position.clone());\n\
   this.scene.add(tree);\n\
 \n\
@@ -1474,6 +1474,7 @@ function init() {\n\
     //pano.markerMaterial.envMap.needsUpdate = true;\n\
 \n\
     _depthLoader.load(this.panoId);\n\
+    console.log(this.links);\n\
   };\n\
 \n\
 \n\

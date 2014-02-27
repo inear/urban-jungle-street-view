@@ -86,6 +86,7 @@ function init() {
     //pano.markerMaterial.envMap.needsUpdate = true;
 
     _depthLoader.load(this.panoId);
+    console.log(this.links);
   };
 
 

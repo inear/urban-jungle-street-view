@@ -63,7 +63,7 @@ function PanoView(){
 
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);
   this.climbingBillboardGeo = new THREE.PlaneGeometry(2.6,3.8,1,1);
-  this.grassBillboardGeo = new THREE.PlaneGeometry(2,4,1,1);
+  this.grassBillboardGeo = new THREE.PlaneGeometry(4,4,1,1);
 
   this.init3D();
   this.initEvents();
@@ -227,14 +227,14 @@ p.init3D = function(){
   //tree
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree.png' );
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
-  tree.position.set(30,0,5);
+  tree.position.set(40,0,5);
   tree.lookAt(this.camera.position.clone());
   this.scene.add(tree);
 
   //tree2
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
-  tree.position.set(-20,0,0);
+  tree.position.set(-40,0,0);
   tree.lookAt(this.camera.position.clone());
   this.scene.add(tree);
 
