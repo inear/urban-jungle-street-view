@@ -743,17 +743,17 @@ function PanoView(){\n\
   this.markerMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex,alphaTest: 0.8 });\n\
 \n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
-  this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
+  this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
 \n\
   var wallMossMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-moss.png' );\n\
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );\n\
 \n\
   var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );\n\
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );\n\
+  this.wallHangMaterial = new THREE.MeshLambertMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );\n\
 \n\
   var climbingLeafTex = THREE.ImageUtils.loadTexture( 'assets/images/climbing.png' );\n\
-  this.climbingPlantLeafMaterial = new THREE.MeshBasicMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});\n\
-  this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x47c46d});\n\
+  this.climbingPlantLeafMaterial = new THREE.MeshLambertMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});\n\
+  this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x3c8644,ambient:0x000000});\n\
 \n\
 \n\
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);\n\
@@ -898,13 +898,12 @@ p.init3D = function(){\n\
 \n\
   this.scene.add( this.mesh );\n\
 \n\
-  this.light = new THREE.DirectionalLight(0xffffff,0.2);\n\
+  this.light = new THREE.DirectionalLight(0xffffff,0.8);\n\
 \n\
   this.scene.add(this.light);\n\
 \n\
-  this.scene.add( new THREE.AmbientLight(0x222222,0.4));\n\
+  this.scene.add( new THREE.AmbientLight(0x999999,0.2));\n\
 \n\
-  this.plant\n\
 \n\
   //ground\n\
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );\n\
@@ -912,7 +911,7 @@ p.init3D = function(){\n\
   mossTile.wrapS = mossTile.wrapT = THREE.RepeatWrapping;\n\
   mossTile.needsUpdate = true;\n\
 \n\
-  this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile}));\n\
+  this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile,ambient:0x000000}));\n\
   this.ground.rotation.x = Math.PI*-0.5;\n\
   this.ground.position.y = -20;\n\
   this.scene.add(this.ground);\n\
@@ -1256,7 +1255,7 @@ p.createClimbingPlant = function(){\n\
 \n\
     plant.rotation.z = Math.random();\n\
     plant.rotation.y = Math.random();\n\
-    plant.scale.set(0.6,0.6,0.6);\n\
+    plant.scale.set(0.7,0.7,0.7);\n\
 \n\
     mesh.add(plant);\n\
   }\n\

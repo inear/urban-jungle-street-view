@@ -46,17 +46,17 @@ function PanoView(){
   this.markerMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex,alphaTest: 0.8 });
 
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
-  this.grassMaterial = new THREE.MeshBasicMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
+  this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
 
   var wallMossMap = THREE.ImageUtils.loadTexture( 'assets/images/wall-moss.png' );
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );
 
   var wallHangMap = THREE.ImageUtils.loadTexture( 'assets/images/leafs.png' );
-  this.wallHangMaterial = new THREE.MeshBasicMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );
+  this.wallHangMaterial = new THREE.MeshLambertMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );
 
   var climbingLeafTex = THREE.ImageUtils.loadTexture( 'assets/images/climbing.png' );
-  this.climbingPlantLeafMaterial = new THREE.MeshBasicMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});
-  this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x47c46d});
+  this.climbingPlantLeafMaterial = new THREE.MeshLambertMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});
+  this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x3c8644,ambient:0x000000});
 
 
   this.hangBillboardGeo = new THREE.PlaneGeometry(5,3,1,1);
@@ -201,13 +201,12 @@ p.init3D = function(){
 
   this.scene.add( this.mesh );
 
-  this.light = new THREE.DirectionalLight(0xffffff,0.2);
+  this.light = new THREE.DirectionalLight(0xffffff,0.8);
 
   this.scene.add(this.light);
 
-  this.scene.add( new THREE.AmbientLight(0x222222,0.4));
+  this.scene.add( new THREE.AmbientLight(0x999999,0.2));
 
-  this.plant
 
   //ground
   var mossTile = THREE.ImageUtils.loadTexture( 'assets/images/moss-tile.jpg' );
@@ -215,7 +214,7 @@ p.init3D = function(){
   mossTile.wrapS = mossTile.wrapT = THREE.RepeatWrapping;
   mossTile.needsUpdate = true;
 
-  this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile}));
+  this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile,ambient:0x000000}));
   this.ground.rotation.x = Math.PI*-0.5;
   this.ground.position.y = -20;
   this.scene.add(this.ground);
@@ -559,7 +558,7 @@ p.createClimbingPlant = function(){
 
     plant.rotation.z = Math.random();
     plant.rotation.y = Math.random();
-    plant.scale.set(0.6,0.6,0.6);
+    plant.scale.set(0.7,0.7,0.7);
 
     mesh.add(plant);
   }
