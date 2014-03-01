@@ -1,4 +1,6 @@
 var raf = require('raf');
+var Nav = require('./nav');
+
 var DEG_TO_RAD = Math.PI/180;
 var MAP_WIDTH = 512;
 var MAP_HEIGHT = 256;
@@ -37,6 +39,9 @@ function PanoView(){
   this.scene = new THREE.Scene();
 
   this.scene.add( this.camera );
+
+  this.nav = new Nav();
+  this.scene.add(this.nav);
 
   this.mesh = null;
   this.foliageContainer = null

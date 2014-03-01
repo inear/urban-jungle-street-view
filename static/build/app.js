@@ -694,8 +694,74 @@ exports.cancel = function(id){\n\
 };\n\
 //@ sourceURL=component-raf/index.js"
 ));
+require.register("map/nav.js", Function("exports, require, module",
+"module.exports = Nav;\n\
+\n\
+function Nav(){\n\
+\n\
+  this.container = new THREE.Object3D();\n\
+\n\
+  this.markers = [];\n\
+\n\
+  this.createArrows();\n\
+\n\
+  return this.container;\n\
+}\n\
+\n\
+var p = Nav.prototype;\n\
+\n\
+p.createArrows = function(){\n\
+\n\
+  // create a basic shape\n\
+  var shape = new THREE.Shape();\n\
+  shape.moveTo(4, 0);\n\
+  shape.lineTo(7.8, 6.7);\n\
+  shape.lineTo(5.4, 8);\n\
+  shape.lineTo(4, 5.6);\n\
+  shape.lineTo(2.4, 8);\n\
+  shape.lineTo(0, 6.7);\n\
+  shape.lineTo(4, 0);\n\
+\n\
+  var geo = new THREE.ExtrudeGeometry(shape,{amount:0.2, bevelEnabled:true,bevelThickness:0.3,bevelSize:0.1});\n\
+\n\
+  geo.applyMatrix(new THREE.Matrix4().makeTranslation(-4,-4,0));\n\
+  geo.applyMatrix(new THREE.Matrix4().makeScale(0.3,0.3,0.3));\n\
+  geo.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI*0.5));\n\
+  geo.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI));\n\
+  geo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,3));\n\
+\n\
+  var tex = THREE.ImageUtils.loadTexture( 'assets/images/concrete.jpg' );\n\
+  tex.repeat.x = tex.repeat.y = 0.1;\n\
+  var arrow = new THREE.Mesh(geo,new THREE.MeshLambertMaterial({map: tex, wireframe:false,color:0x666666,ambient:0x333333}));\n\
+\n\
+  //shadows\n\
+  shadowTex = THREE.ImageUtils.loadTexture( 'assets/images/arrow-shadow.png' );\n\
+  var shadow = new THREE.Mesh( new THREE.PlaneGeometry(3,3,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));\n\
+  shadow.rotation.x = -Math.PI*0.5;\n\
+  shadow.rotation.z = Math.PI;\n\
+  shadow.position.y = -2.3;\n\
+  shadow.position.z = 3;\n\
+  arrow.add(shadow);\n\
+\n\
+  for (var i = 0; i < 4; i++) {\n\
+    var newArrow = arrow.clone();\n\
+    newArrow.rotation.y = Math.PI/4*i*2;\n\
+    this.markers.push(newArrow);\n\
+\n\
+    this.container.add(newArrow);\n\
+\n\
+\n\
+  };\n\
+\n\
+\n\
+\n\
+}\n\
+//@ sourceURL=map/nav.js"
+));
 require.register("map/index.js", Function("exports, require, module",
 "var raf = require('raf');\n\
+var Nav = require('./nav');\n\
+\n\
 var DEG_TO_RAD = Math.PI/180;\n\
 var MAP_WIDTH = 512;\n\
 var MAP_HEIGHT = 256;\n\
@@ -734,6 +800,9 @@ function PanoView(){\n\
   this.scene = new THREE.Scene();\n\
 \n\
   this.scene.add( this.camera );\n\
+\n\
+  this.nav = new Nav();\n\
+  this.scene.add(this.nav);\n\
 \n\
   this.mesh = null;\n\
   this.foliageContainer = null\n\
@@ -1554,6 +1623,7 @@ require.alias("home/index.js", "home/index.js");
 require.alias("credits/index.js", "boot/deps/credits/index.js");
 require.alias("credits/index.js", "boot/deps/credits/index.js");
 require.alias("credits/index.js", "credits/index.js");
+require.alias("map/nav.js", "boot/deps/map/nav.js");
 require.alias("map/index.js", "boot/deps/map/index.js");
 require.alias("map/index.js", "boot/deps/map/index.js");
 require.alias("component-raf/index.js", "map/deps/raf/index.js");

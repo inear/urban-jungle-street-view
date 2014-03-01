@@ -2,7 +2,9 @@
   "name": "map",
   "main": "index.js",
   "scripts": [
+    "nav.js",
     "index.js"
+
   ],
   "styles": [
     "map.css"
