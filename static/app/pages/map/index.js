@@ -21,27 +21,33 @@ function PanoView(){
 
   this.time = 0;
 
+  this.mouse2d = new THREE.Vector2();
+
   this.normalMapCanvas = null;
   this.depthData = null;
 
   this.render = this.render.bind(this);
   this.onSceneClick = this.onSceneClick.bind(this);
+  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
 
   this.canvas = document.createElement( 'canvas' );
   this.context = this.canvas.getContext( '2d' );
 
-  this.camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 1, 1100 );
+  this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );
 
   this.target = new THREE.Vector3( 0, 0, 0 );
 
   this.controller = new THREE.FirstPersonControls(this.camera,document);
+
+  // initialize object to perform world/screen calculations
+  this.projector = new THREE.Projector();
 
   this.scene = new THREE.Scene();
 
   this.scene.add( this.camera );
 
   this.nav = new Nav();
-  this.scene.add(this.nav);
+  this.scene.add(this.nav.container);
 
   this.mesh = null;
   this.foliageContainer = null
@@ -253,6 +259,13 @@ p.init3D = function(){
 
 p.initEvents = function(){
   $(this.renderer.domElement).on('click', this.onSceneClick);
+
+  document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
+}
+
+p.onDocumentMouseMove = function(event){
+  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }
 
 p.onSceneClick = function(event){
@@ -587,6 +600,8 @@ p.render = function(){
 
   this.renderer.autoClearColor = false;
 
+  this.testMouseOverObjects();
+
   this.renderer.clear();
   this.composer.reset();
 
@@ -612,6 +627,37 @@ p.render = function(){
   this.time += 0.01;
 
   raf(this.render);
+}
+
+p.testMouseOverObjects = function(){
+
+  var vector = new THREE.Vector3( this.mouse2d.x, this.mouse2d.y, 1 );
+  this.projector.unprojectVector( vector, this.camera );
+  var ray = new THREE.Raycaster( this.camera.position, vector.sub( this.camera.position ).normalize() );
+  var obj;
+
+  // create an array containing all objects in the scene with which the ray intersects
+  var intersects = ray.intersectObjects( this.nav.markers );
+
+
+  // if there is one (or more) intersections
+  if ( intersects.length > 0 )
+  {
+    obj = intersects[0].object;
+    obj.position.y += (0.5 - obj.position.y)/2;
+    obj.children[0].visible = false;
+    this.renderer.domElement.style.cursor = 'pointer';
+  }
+  else
+  {
+    for (var i =  this.nav.markers.length - 1; i >= 0; i--) {
+      obj = this.nav.markers[i];
+      obj.position.y += (0 - obj.position.y)/2;
+      obj.children[0].visible = true;
+    };
+    this.renderer.domElement.style.cursor = '';
+  }
+
 }
 
 p.setVisibleHidden = function(child){

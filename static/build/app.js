@@ -704,8 +704,6 @@ function Nav(){\n\
   this.markers = [];\n\
 \n\
   this.createArrows();\n\
-\n\
-  return this.container;\n\
 }\n\
 \n\
 var p = Nav.prototype;\n\
@@ -741,6 +739,8 @@ p.createArrows = function(){\n\
   shadow.rotation.z = Math.PI;\n\
   shadow.position.y = -2.3;\n\
   shadow.position.z = 3;\n\
+\n\
+  arrow.shadow = shadow;\n\
   arrow.add(shadow);\n\
 \n\
   for (var i = 0; i < 4; i++) {\n\
@@ -782,27 +782,33 @@ function PanoView(){\n\
 \n\
   this.time = 0;\n\
 \n\
+  this.mouse2d = new THREE.Vector2();\n\
+\n\
   this.normalMapCanvas = null;\n\
   this.depthData = null;\n\
 \n\
   this.render = this.render.bind(this);\n\
   this.onSceneClick = this.onSceneClick.bind(this);\n\
+  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
 \n\
   this.canvas = document.createElement( 'canvas' );\n\
   this.context = this.canvas.getContext( '2d' );\n\
 \n\
-  this.camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 1, 1100 );\n\
+  this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );\n\
 \n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
   this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
+\n\
+  // initialize object to perform world/screen calculations\n\
+  this.projector = new THREE.Projector();\n\
 \n\
   this.scene = new THREE.Scene();\n\
 \n\
   this.scene.add( this.camera );\n\
 \n\
   this.nav = new Nav();\n\
-  this.scene.add(this.nav);\n\
+  this.scene.add(this.nav.container);\n\
 \n\
   this.mesh = null;\n\
   this.foliageContainer = null\n\
@@ -1014,6 +1020,13 @@ p.init3D = function(){\n\
 \n\
 p.initEvents = function(){\n\
   $(this.renderer.domElement).on('click', this.onSceneClick);\n\
+\n\
+  document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
+}\n\
+\n\
+p.onDocumentMouseMove = function(event){\n\
+  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
+  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
 }\n\
 \n\
 p.onSceneClick = function(event){\n\
@@ -1348,6 +1361,8 @@ p.render = function(){\n\
 \n\
   this.renderer.autoClearColor = false;\n\
 \n\
+  this.testMouseOverObjects();\n\
+\n\
   this.renderer.clear();\n\
   this.composer.reset();\n\
 \n\
@@ -1373,6 +1388,37 @@ p.render = function(){\n\
   this.time += 0.01;\n\
 \n\
   raf(this.render);\n\
+}\n\
+\n\
+p.testMouseOverObjects = function(){\n\
+\n\
+  var vector = new THREE.Vector3( this.mouse2d.x, this.mouse2d.y, 1 );\n\
+  this.projector.unprojectVector( vector, this.camera );\n\
+  var ray = new THREE.Raycaster( this.camera.position, vector.sub( this.camera.position ).normalize() );\n\
+  var obj;\n\
+\n\
+  // create an array containing all objects in the scene with which the ray intersects\n\
+  var intersects = ray.intersectObjects( this.nav.markers );\n\
+\n\
+\n\
+  // if there is one (or more) intersections\n\
+  if ( intersects.length > 0 )\n\
+  {\n\
+    obj = intersects[0].object;\n\
+    obj.position.y += (0.5 - obj.position.y)/2;\n\
+    obj.children[0].visible = false;\n\
+    this.renderer.domElement.style.cursor = 'pointer';\n\
+  }\n\
+  else\n\
+  {\n\
+    for (var i =  this.nav.markers.length - 1; i >= 0; i--) {\n\
+      obj = this.nav.markers[i];\n\
+      obj.position.y += (0 - obj.position.y)/2;\n\
+      obj.children[0].visible = true;\n\
+    };\n\
+    this.renderer.domElement.style.cursor = '';\n\
+  }\n\
+\n\
 }\n\
 \n\
 p.setVisibleHidden = function(child){\n\

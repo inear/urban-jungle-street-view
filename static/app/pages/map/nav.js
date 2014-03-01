@@ -7,8 +7,6 @@ function Nav(){
   this.markers = [];
 
   this.createArrows();
-
-  return this.container;
 }
 
 var p = Nav.prototype;
@@ -44,6 +42,8 @@ p.createArrows = function(){
   shadow.rotation.z = Math.PI;
   shadow.position.y = -2.3;
   shadow.position.z = 3;
+
+  arrow.shadow = shadow;
   arrow.add(shadow);
 
   for (var i = 0; i < 4; i++) {
