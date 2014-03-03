@@ -95,27 +95,29 @@ GSVPANO.PanoLoader = function (parameters) {
     };
 
     this.loadId = function (id) {
-      console.log('Load for id', id);
+      console.log('Load id' + id);
 
       var self = this;
-        _panoClient.getPanoramaById(id, 50, function (result, status) {
-            if (status === google.maps.StreetViewStatus.OK) {
-                if( self.onPanoramaData ) self.onPanoramaData( result );
+      _panoClient.getPanoramaById(id, function (result, status) {
+          if (status === google.maps.StreetViewStatus.OK) {
+              if( self.onPanoramaData ) self.onPanoramaData( result );
 
-                var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
-                rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
-                copyright = result.copyright;
-                self.copyright = result.copyright;
-                _panoId = result.location.pano;
-                self.panoId = _panoId;
-                self.location = location;
-                self.links = result.links;
-                self.composePanorama();
-            } else {
-                if( self.onNoPanoramaData ) self.onNoPanoramaData( status );
-                self.throwError('Could not retrieve panorama for the following reason: ' + status);
-            }
-        });
+              //var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
+              //rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
+              copyright = result.copyright;
+              self.copyright = result.copyright;
+              _panoId = result.location.pano;
+              self.panoId = _panoId;
+              self.location = location;
+              self.links = result.links;
+              self.centerHeading = result.tiles.centerHeading;
+              self.panoLocation = result.location;
+              self.composePanorama();
+          } else {
+              if( self.onNoPanoramaData ) self.onNoPanoramaData( status );
+              self.throwError('Could not retrieve panorama for the following reason: ' + status);
+          }
+      });
 
     }
 
@@ -127,14 +129,16 @@ GSVPANO.PanoLoader = function (parameters) {
             if (status === google.maps.StreetViewStatus.OK) {
                 if( self.onPanoramaData ) self.onPanoramaData( result );
 
-                var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
-                rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
+                //var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
+                //rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
                 copyright = result.copyright;
                 self.copyright = result.copyright;
                 _panoId = result.location.pano;
                 self.panoId = _panoId;
                 self.location = location;
                 self.links = result.links;
+                self.centerHeading = result.tiles.centerHeading;
+                self.panoLocation = result.location;
                 self.composePanorama();
             } else {
                 if( self.onNoPanoramaData ) self.onNoPanoramaData( status );

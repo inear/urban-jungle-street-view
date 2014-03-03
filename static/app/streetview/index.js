@@ -21,6 +21,7 @@ var isWebGL = function () {
 function PanoView(){
 
   this.time = 0;
+  this.isRunning = false;
 
   this.mouse2d = new THREE.Vector2();
 
@@ -53,11 +54,11 @@ function PanoView(){
   this.mesh = null;
   this.foliageContainer = null
 
-  //this.markerGeo = new THREE.SphereGeometry(2,4,4);
-  this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);
+  //this.grassBaseGeo = new THREE.SphereGeometry(2,4,4);
+  this.grassBaseGeo = new THREE.PlaneGeometry(2,2,1,1);
   var cracksTex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');
 
-  this.markerMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});
+  this.grassBaseMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});
 
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );
   this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );
@@ -85,11 +86,16 @@ var p = PanoView.prototype;
 
 Emitter(p);
 
-p.ready = function(){
+p.generateNature = function(){
+  this.resetNature();
   this.createEdgeFoliage();
   this.createClimbingFoliages();
   this.createPlants();
-  this.render();
+
+  if( !this.isRunning ) {
+    this.isRunning = true;
+    this.render();
+  }
 
 }
 
@@ -107,6 +113,16 @@ p.setNormalMap = function( canvas ) {
 p.setDepthMap = function( canvas ) {
   this.mesh.material.uniforms.texture2.value.image = canvas;
   this.mesh.material.uniforms.texture2.value.needsUpdate = true;
+}
+
+p.resetNature = function(){
+  var obj;
+
+  for (var i = this.foliageContainer.children.length - 1; i >= 0; i--) {
+    obj = this.foliageContainer.children[i];
+    this.foliageContainer.remove(obj);
+    obj = undefined;
+  };
 }
 
 p.createPlants = function(){
@@ -243,14 +259,14 @@ p.init3D = function(){
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(40,0,5);
   tree.lookAt(this.camera.position.clone());
-  this.scene.add(tree);
+  //this.scene.add(tree);
 
   //tree2
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(-40,0,0);
   tree.lookAt(this.camera.position.clone());
-  this.scene.add(tree);
+  //this.scene.add(tree);
 
   this.controller.handleResize();
 
@@ -260,8 +276,8 @@ p.init3D = function(){
   this.onWindowResize();
 }
 
-p.setLinks = function( links ){
-  this.nav.setLinks(links);
+p.setLinks = function( links, centerHeading ){
+  this.nav.setLinks(links, centerHeading);
 }
 
 p.initEvents = function(){
@@ -471,7 +487,7 @@ p.plotIn3D = function( point, forceType ){
 
   var up = new THREE.Vector3(0,-1,0);
 
-  if( pointData.distance > 140 ) {
+  if( pointData.distance > 140 || pointData.distance < 7) {
     return;
   }
 
@@ -482,12 +498,6 @@ p.plotIn3D = function( point, forceType ){
   }
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {
     plant = this.createGrass({disableCracks:forceType === 'ground'});
-    //plant.rotation.x = Math.PI*0.5;
-    //make rotation
-    /*var v = plant.position.clone();
-    v.add( up );
-    plant.lookAt(v);*/
-
   }
   else {
     plant = this.createWallPlant();
@@ -523,7 +533,7 @@ p.createGrass = function( opts ){
     plant = new THREE.Object3D();
   }
   else {
-    plant = new THREE.Mesh(this.markerGeo, this.markerMaterial);
+    plant = new THREE.Mesh(this.grassBaseGeo, this.grassBaseMaterial);
   }
 
   plant.rotation.x = Math.PI*0.5;
@@ -537,8 +547,6 @@ p.createGrass = function( opts ){
 
     billboard.rotation.x = Math.PI*-0.5;
     billboard.rotation.y = Math.PI*Math.random();
-
-
 
     billboard.position.z =  -1.9;
     //billboard.position.x = Math.random()*2-1;
@@ -631,7 +639,7 @@ p.render = function(){
   this.composer.pass( this.bloomPass );
 
   this.composer.toScreen();
-
+  //this.renderer.render(this.scene, this.camera);
   this.controller.update(0.1);
   this.time += 0.01;
 
@@ -653,16 +661,16 @@ p.testMouseOverObjects = function(){
   if ( intersects.length > 0 )
   {
     obj = intersects[0].object;
-    obj.position.y += (0.5 - obj.position.y)/2;
-    obj.children[0].visible = false;
+    obj.arrow.position.y += (0.5 - obj.arrow.position.y)/2;
+    obj.arrow.children[0].visible = false;
     this.renderer.domElement.style.cursor = 'pointer';
   }
   else
   {
     for (var i =  this.nav.markers.length - 1; i >= 0; i--) {
       obj = this.nav.markers[i];
-      obj.position.y += (0 - obj.position.y)/2;
-      obj.children[0].visible = true;
+      obj.arrow.position.y += (0 - obj.arrow.position.y)/2;
+      obj.arrow.children[0].visible = true;
     };
     this.renderer.domElement.style.cursor = '';
   }

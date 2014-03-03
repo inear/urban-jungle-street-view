@@ -433,54 +433,61 @@ p.createArrows = function(){\n\
   shape.lineTo(0, 6.7);\n\
   shape.lineTo(4, 0);\n\
 \n\
-  var geo = new THREE.ExtrudeGeometry(shape,{amount:0.2, bevelEnabled:true,bevelThickness:0.3,bevelSize:0.1});\n\
+  var arrowGeo = new THREE.ExtrudeGeometry(shape,{amount:0.2, bevelEnabled:true,bevelThickness:0.3,bevelSize:0.1});\n\
 \n\
-  geo.applyMatrix(new THREE.Matrix4().makeTranslation(-4,-4,0));\n\
-  geo.applyMatrix(new THREE.Matrix4().makeScale(0.3,0.3,0.3));\n\
-  geo.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI*0.5));\n\
-  geo.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI));\n\
-  geo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,3));\n\
+  arrowGeo.applyMatrix(new THREE.Matrix4().makeTranslation(-4,-4,0));\n\
+  arrowGeo.applyMatrix(new THREE.Matrix4().makeScale(0.3,0.3,0.3));\n\
+  arrowGeo.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI*0.5));\n\
+  arrowGeo.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI));\n\
+  arrowGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,5));\n\
 \n\
   var tex = THREE.ImageUtils.loadTexture( 'assets/images/concrete.jpg' );\n\
   tex.repeat.x = tex.repeat.y = 0.1;\n\
-  var arrow = new THREE.Mesh(geo,new THREE.MeshLambertMaterial({map: tex, wireframe:false,color:0x666666,ambient:0x333333}));\n\
 \n\
+  markerGeo = new THREE.SphereGeometry(2,6,6);\n\
+  markerGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,5));\n\
+\n\
+  var marker = new THREE.Mesh( markerGeo, new THREE.MeshBasicMaterial({color:0xff0000,visible:false}));\n\
+  var arrow = new THREE.Mesh( arrowGeo,new THREE.MeshLambertMaterial({map: tex, wireframe:false,color:0x666666,ambient:0x333333}));\n\
+  arrow.name = 'arrow';\n\
   //shadows\n\
   shadowTex = THREE.ImageUtils.loadTexture( 'assets/images/arrow-shadow.png' );\n\
   var shadow = new THREE.Mesh( new THREE.PlaneGeometry(3,3,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));\n\
   shadow.rotation.x = -Math.PI*0.5;\n\
   shadow.rotation.z = Math.PI;\n\
   shadow.position.y = -2.3;\n\
-  shadow.position.z = 3;\n\
+  shadow.position.z = 5;\n\
+  shadow.name = 'shadow';\n\
 \n\
-  arrow.shadow = shadow;\n\
   arrow.add(shadow);\n\
+  marker.add(arrow);\n\
+\n\
+  marker.arrow = arrow;\n\
 \n\
   for (var i = 0; i < 4; i++) {\n\
-    var newArrow = arrow.clone();\n\
-    newArrow.rotation.y = Math.PI/4*i*2;\n\
-\n\
-    this.markers.push(newArrow);\n\
-\n\
-    //this.container.add(newArrow);\n\
-\n\
+    var newMarker = marker.clone();\n\
+    newMarker.arrow = newMarker.getObjectByName('arrow');\n\
+    newMarker.shadow = newMarker.getObjectByName('shadow');\n\
+    //newArrow.rotation.y = Math.PI/4*i*2;\n\
+    this.markers.push(newMarker);\n\
   };\n\
 \n\
 }\n\
 \n\
-p.setLinks = function( links ) {\n\
+p.setLinks = function( links, centerHeading ) {\n\
 \n\
   for (var i = 0; i < 4; i++) {\n\
-    console.log(this.markers)\n\
     if( this.markers[i].parent ) {\n\
       this.container.remove(this.markers[i]);\n\
+      this.markers[i].active = false;\n\
     }\n\
   }\n\
 \n\
   for ( i = links.length - 1; i >= 0; i--) {\n\
-    this.markers[i].rotation.y = (links[i].heading+45)*Math.PI/180;\n\
-    this.markers[i].pano = links[i].pano;\n\
 \n\
+    this.markers[i].rotation.y = ((links[i].heading-90-centerHeading)*-1)*Math.PI/180;\n\
+    this.markers[i].pano = links[i].pano;\n\
+    this.markers[i].active = true;\n\
     this.container.add(this.markers[i]);\n\
 \n\
   };\n\
@@ -512,6 +519,7 @@ var isWebGL = function () {\n\
 function PanoView(){\n\
 \n\
   this.time = 0;\n\
+  this.isRunning = false;\n\
 \n\
   this.mouse2d = new THREE.Vector2();\n\
 \n\
@@ -544,11 +552,11 @@ function PanoView(){\n\
   this.mesh = null;\n\
   this.foliageContainer = null\n\
 \n\
-  //this.markerGeo = new THREE.SphereGeometry(2,4,4);\n\
-  this.markerGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
+  //this.grassBaseGeo = new THREE.SphereGeometry(2,4,4);\n\
+  this.grassBaseGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
   var cracksTex = THREE.ImageUtils.loadTexture('assets/images/cracks.png');\n\
 \n\
-  this.markerMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});\n\
+  this.grassBaseMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});\n\
 \n\
   var grassMap = THREE.ImageUtils.loadTexture( 'assets/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
@@ -576,11 +584,16 @@ var p = PanoView.prototype;\n\
 \n\
 Emitter(p);\n\
 \n\
-p.ready = function(){\n\
+p.generateNature = function(){\n\
+  this.resetNature();\n\
   this.createEdgeFoliage();\n\
   this.createClimbingFoliages();\n\
   this.createPlants();\n\
-  this.render();\n\
+\n\
+  if( !this.isRunning ) {\n\
+    this.isRunning = true;\n\
+    this.render();\n\
+  }\n\
 \n\
 }\n\
 \n\
@@ -598,6 +611,16 @@ p.setNormalMap = function( canvas ) {\n\
 p.setDepthMap = function( canvas ) {\n\
   this.mesh.material.uniforms.texture2.value.image = canvas;\n\
   this.mesh.material.uniforms.texture2.value.needsUpdate = true;\n\
+}\n\
+\n\
+p.resetNature = function(){\n\
+  var obj;\n\
+\n\
+  for (var i = this.foliageContainer.children.length - 1; i >= 0; i--) {\n\
+    obj = this.foliageContainer.children[i];\n\
+    this.foliageContainer.remove(obj);\n\
+    obj = undefined;\n\
+  };\n\
 }\n\
 \n\
 p.createPlants = function(){\n\
@@ -734,14 +757,14 @@ p.init3D = function(){\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(40,0,5);\n\
   tree.lookAt(this.camera.position.clone());\n\
-  this.scene.add(tree);\n\
+  //this.scene.add(tree);\n\
 \n\
   //tree2\n\
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(-40,0,0);\n\
   tree.lookAt(this.camera.position.clone());\n\
-  this.scene.add(tree);\n\
+  //this.scene.add(tree);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -751,8 +774,8 @@ p.init3D = function(){\n\
   this.onWindowResize();\n\
 }\n\
 \n\
-p.setLinks = function( links ){\n\
-  this.nav.setLinks(links);\n\
+p.setLinks = function( links, centerHeading ){\n\
+  this.nav.setLinks(links, centerHeading);\n\
 }\n\
 \n\
 p.initEvents = function(){\n\
@@ -962,7 +985,7 @@ p.plotIn3D = function( point, forceType ){\n\
 \n\
   var up = new THREE.Vector3(0,-1,0);\n\
 \n\
-  if( pointData.distance > 140 ) {\n\
+  if( pointData.distance > 140 || pointData.distance < 7) {\n\
     return;\n\
   }\n\
 \n\
@@ -973,12 +996,6 @@ p.plotIn3D = function( point, forceType ){\n\
   }\n\
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {\n\
     plant = this.createGrass({disableCracks:forceType === 'ground'});\n\
-    //plant.rotation.x = Math.PI*0.5;\n\
-    //make rotation\n\
-    /*var v = plant.position.clone();\n\
-    v.add( up );\n\
-    plant.lookAt(v);*/\n\
-\n\
   }\n\
   else {\n\
     plant = this.createWallPlant();\n\
@@ -1014,7 +1031,7 @@ p.createGrass = function( opts ){\n\
     plant = new THREE.Object3D();\n\
   }\n\
   else {\n\
-    plant = new THREE.Mesh(this.markerGeo, this.markerMaterial);\n\
+    plant = new THREE.Mesh(this.grassBaseGeo, this.grassBaseMaterial);\n\
   }\n\
 \n\
   plant.rotation.x = Math.PI*0.5;\n\
@@ -1028,8 +1045,6 @@ p.createGrass = function( opts ){\n\
 \n\
     billboard.rotation.x = Math.PI*-0.5;\n\
     billboard.rotation.y = Math.PI*Math.random();\n\
-\n\
-\n\
 \n\
     billboard.position.z =  -1.9;\n\
     //billboard.position.x = Math.random()*2-1;\n\
@@ -1122,7 +1137,7 @@ p.render = function(){\n\
   this.composer.pass( this.bloomPass );\n\
 \n\
   this.composer.toScreen();\n\
-\n\
+  //this.renderer.render(this.scene, this.camera);\n\
   this.controller.update(0.1);\n\
   this.time += 0.01;\n\
 \n\
@@ -1144,16 +1159,16 @@ p.testMouseOverObjects = function(){\n\
   if ( intersects.length > 0 )\n\
   {\n\
     obj = intersects[0].object;\n\
-    obj.position.y += (0.5 - obj.position.y)/2;\n\
-    obj.children[0].visible = false;\n\
+    obj.arrow.position.y += (0.5 - obj.arrow.position.y)/2;\n\
+    obj.arrow.children[0].visible = false;\n\
     this.renderer.domElement.style.cursor = 'pointer';\n\
   }\n\
   else\n\
   {\n\
     for (var i =  this.nav.markers.length - 1; i >= 0; i--) {\n\
       obj = this.nav.markers[i];\n\
-      obj.position.y += (0 - obj.position.y)/2;\n\
-      obj.children[0].visible = true;\n\
+      obj.arrow.position.y += (0 - obj.arrow.position.y)/2;\n\
+      obj.arrow.children[0].visible = true;\n\
     };\n\
     this.renderer.domElement.style.cursor = '';\n\
   }\n\
@@ -1252,10 +1267,24 @@ var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
 var pano = new Pano();\n\
-/*\n\
+\n\
 pano.on('panoLinkClicked', function(id){\n\
   _panoLoader.loadId(id);\n\
-})*/\n\
+})\n\
+\n\
+\n\
+_panoLoader.onPanoramaLoad = function() {\n\
+\n\
+  pano.setPano(this.canvas);\n\
+\n\
+  _depthLoader.load(this.panoId);\n\
+  console.log(this.panoLocation);\n\
+  self.centerHeading = this.centerHeading;\n\
+  self.links = this.links;\n\
+\n\
+\n\
+};\n\
+\n\
 \n\
 _depthLoader.onDepthLoad = function() {\n\
   var x, y, context, image, w, h, c,pointer;\n\
@@ -1292,6 +1321,7 @@ _depthLoader.onDepthLoad = function() {\n\
 \n\
   if( !normalCanvas ) {\n\
     normalCanvas = document.createElement(\"canvas\");\n\
+    //document.body.appendChild(normalCanvas);\n\
   }\n\
 \n\
   context = normalCanvas.getContext('2d');\n\
@@ -1322,29 +1352,18 @@ _depthLoader.onDepthLoad = function() {\n\
 \n\
   context.putImageData(image, 0, 0);\n\
 \n\
-  document.body.appendChild(normalCanvas);\n\
+\n\
 \n\
   pano.setNormalMap(normalCanvas);\n\
 \n\
-  pano.ready();\n\
+  pano.generateNature();\n\
 \n\
-  pano.setLinks(self.links);\n\
+  pano.setLinks(self.links, self.centerHeading );\n\
 \n\
 }\n\
 \n\
-_panoLoader.onPanoramaLoad = function() {\n\
 \n\
-  pano.setPano(this.canvas);\n\
-\n\
-  _depthLoader.load(this.panoId);\n\
-\n\
-  self.links = this.links;\n\
-\n\
-\n\
-};\n\
-\n\
-\n\
- _panoLoader.setZoom(3);\n\
+ _panoLoader.setZoom(1);\n\
  //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
  //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
@@ -1352,7 +1371,8 @@ _panoLoader.onPanoramaLoad = function() {\n\
 \n\
  //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
  //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
- _panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
+ //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
+ _panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
 \n\
