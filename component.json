@@ -1,5 +1,17 @@
 {
-  "name": "mapsdepth",
-  "paths": ["static/app", "static/app/pages"],
-  "local": ["boot"]
+  "name": "urbanjungle",
+  "paths": [
+    "static/app"
+  ],
+  "local": [
+    "streetview"
+  ],
+  "scripts": [
+    "static/app/index.js"
+  ],
+
+  "main": "static/app/index.js",
+
+  "dependencies": {
+  }
 }

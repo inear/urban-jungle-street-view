@@ -49,13 +49,30 @@ p.createArrows = function(){
   for (var i = 0; i < 4; i++) {
     var newArrow = arrow.clone();
     newArrow.rotation.y = Math.PI/4*i*2;
+
     this.markers.push(newArrow);
 
-    this.container.add(newArrow);
-
+    //this.container.add(newArrow);
 
   };
 
+}
 
+p.setLinks = function( links ) {
+
+  for (var i = 0; i < 4; i++) {
+    console.log(this.markers)
+    if( this.markers[i].parent ) {
+      this.container.remove(this.markers[i]);
+    }
+  }
+
+  for ( i = links.length - 1; i >= 0; i--) {
+    this.markers[i].rotation.y = (links[i].heading+45)*Math.PI/180;
+    this.markers[i].pano = links[i].pano;
+
+    this.container.add(this.markers[i]);
+
+  };
 
 }

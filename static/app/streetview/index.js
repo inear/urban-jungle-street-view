@@ -1,4 +1,5 @@
 var raf = require('raf');
+var Emitter = require('emitter');
 var Nav = require('./nav');
 
 var DEG_TO_RAD = Math.PI/180;
@@ -81,6 +82,8 @@ function PanoView(){
 }
 
 var p = PanoView.prototype;
+
+Emitter(p);
 
 p.ready = function(){
   this.createEdgeFoliage();
@@ -257,6 +260,10 @@ p.init3D = function(){
   this.onWindowResize();
 }
 
+p.setLinks = function( links ){
+  this.nav.setLinks(links);
+}
+
 p.initEvents = function(){
   $(this.renderer.domElement).on('click', this.onSceneClick);
 
@@ -277,9 +284,7 @@ p.onSceneClick = function(event){
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 
   var intersects = raycaster.intersectObjects([this.mesh]);
-
   if (intersects.length > 0) {
-
     var normalizedPoint = intersects[0].point.clone().normalize();
     var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;
     var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;
@@ -288,8 +293,12 @@ p.onSceneClick = function(event){
     this.plotOnTexture(intersects[0].point);
     //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');
   }
-  else {
-      console.log('no intersect');
+
+  //test nav
+  intersects = raycaster.intersectObjects(this.nav.markers);
+  if (intersects.length > 0) {
+    this.emit('panoLinkClicked', intersects[0].object.pano );
+    //console.log();
   }
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "map",
+  "name": "streetview",
   "main": "index.js",
   "scripts": [
     "nav.js",
@@ -9,15 +9,13 @@
   "styles": [
     "map.css"
   ],
-  "templates": [
-    "template.html"
-  ],
   "strings": [
     "water_vs.glsl",
     "water_fs.glsl"
   ],
   "dependencies": {
-    "component/raf": "*"
+    "component/raf": "*",
+    "component/emitter": "*"
   }
 
 }

@@ -94,6 +94,31 @@ GSVPANO.PanoLoader = function (parameters) {
 
     };
 
+    this.loadId = function (id) {
+      console.log('Load for id', id);
+
+      var self = this;
+        _panoClient.getPanoramaById(id, 50, function (result, status) {
+            if (status === google.maps.StreetViewStatus.OK) {
+                if( self.onPanoramaData ) self.onPanoramaData( result );
+
+                var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
+                rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
+                copyright = result.copyright;
+                self.copyright = result.copyright;
+                _panoId = result.location.pano;
+                self.panoId = _panoId;
+                self.location = location;
+                self.links = result.links;
+                self.composePanorama();
+            } else {
+                if( self.onNoPanoramaData ) self.onNoPanoramaData( status );
+                self.throwError('Could not retrieve panorama for the following reason: ' + status);
+            }
+        });
+
+    }
+
     this.load = function (location) {
 
         console.log('Load for', location);
