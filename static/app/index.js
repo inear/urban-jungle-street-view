@@ -21,7 +21,6 @@ _panoLoader.onPanoramaLoad = function() {
   pano.setPano(this.canvas);
 
   _depthLoader.load(this.panoId);
-  console.log(this.panoLocation);
   self.centerHeading = this.centerHeading;
   self.links = this.links;
 
@@ -106,16 +105,16 @@ _depthLoader.onDepthLoad = function() {
 }
 
 
- _panoLoader.setZoom(1);
+ _panoLoader.setZoom(2);
  //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
  //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
 
  //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));
 
- //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
+ _panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
  //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));
  //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));
- _panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));
+ //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));
 

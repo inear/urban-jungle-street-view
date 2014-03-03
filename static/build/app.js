@@ -797,7 +797,14 @@ p.onSceneClick = function(event){\n\
 \n\
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());\n\
 \n\
-  var intersects = raycaster.intersectObjects([this.mesh]);\n\
+//test nav\n\
+  var intersects = raycaster.intersectObjects(this.nav.markers);\n\
+  if (intersects.length > 0) {\n\
+    this.emit('panoLinkClicked', intersects[0].object.pano );\n\
+    return;\n\
+  }\n\
+\n\
+  intersects = raycaster.intersectObjects([this.mesh]);\n\
   if (intersects.length > 0) {\n\
     var normalizedPoint = intersects[0].point.clone().normalize();\n\
     var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;\n\
@@ -808,12 +815,6 @@ p.onSceneClick = function(event){\n\
     //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');\n\
   }\n\
 \n\
-  //test nav\n\
-  intersects = raycaster.intersectObjects(this.nav.markers);\n\
-  if (intersects.length > 0) {\n\
-    this.emit('panoLinkClicked', intersects[0].object.pano );\n\
-    //console.log();\n\
-  }\n\
 }\n\
 \n\
 p.setDepthData = function( data ){\n\
@@ -996,6 +997,7 @@ p.plotIn3D = function( point, forceType ){\n\
   }\n\
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {\n\
     plant = this.createGrass({disableCracks:forceType === 'ground'});\n\
+\n\
   }\n\
   else {\n\
     plant = this.createWallPlant();\n\
@@ -1010,6 +1012,10 @@ p.plotIn3D = function( point, forceType ){\n\
   //set position\n\
 \n\
   plant.position.copy(pointInWorld);\n\
+\n\
+  if(forceType === 'ground') {\n\
+    plant.position.y -= 0.4;\n\
+  }\n\
 \n\
   this.foliageContainer.add(plant);\n\
 \n\
@@ -1278,7 +1284,6 @@ _panoLoader.onPanoramaLoad = function() {\n\
   pano.setPano(this.canvas);\n\
 \n\
   _depthLoader.load(this.panoId);\n\
-  console.log(this.panoLocation);\n\
   self.centerHeading = this.centerHeading;\n\
   self.links = this.links;\n\
 \n\
@@ -1363,16 +1368,16 @@ _depthLoader.onDepthLoad = function() {\n\
 }\n\
 \n\
 \n\
- _panoLoader.setZoom(1);\n\
+ _panoLoader.setZoom(2);\n\
  //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
  //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
  //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));\n\
 \n\
- //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
+ _panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
  //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
  //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
- _panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\
+ //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
 \n\

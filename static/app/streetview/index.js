@@ -299,7 +299,14 @@ p.onSceneClick = function(event){
 
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 
-  var intersects = raycaster.intersectObjects([this.mesh]);
+//test nav
+  var intersects = raycaster.intersectObjects(this.nav.markers);
+  if (intersects.length > 0) {
+    this.emit('panoLinkClicked', intersects[0].object.pano );
+    return;
+  }
+
+  intersects = raycaster.intersectObjects([this.mesh]);
   if (intersects.length > 0) {
     var normalizedPoint = intersects[0].point.clone().normalize();
     var u = Math.atan2(normalizedPoint.x, normalizedPoint.z) / (2 * Math.PI) + 0.5;
@@ -310,12 +317,6 @@ p.onSceneClick = function(event){
     //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');
   }
 
-  //test nav
-  intersects = raycaster.intersectObjects(this.nav.markers);
-  if (intersects.length > 0) {
-    this.emit('panoLinkClicked', intersects[0].object.pano );
-    //console.log();
-  }
 }
 
 p.setDepthData = function( data ){
@@ -498,6 +499,7 @@ p.plotIn3D = function( point, forceType ){
   }
   else if( normalInWorld.y < -0.7 || forceType === 'ground') {
     plant = this.createGrass({disableCracks:forceType === 'ground'});
+
   }
   else {
     plant = this.createWallPlant();
@@ -512,6 +514,10 @@ p.plotIn3D = function( point, forceType ){
   //set position
 
   plant.position.copy(pointInWorld);
+
+  if(forceType === 'ground') {
+    plant.position.y -= 0.4;
+  }
 
   this.foliageContainer.add(plant);
 

@@ -112,6 +112,7 @@ GSVPANO.PanoLoader = function (parameters) {
               self.links = result.links;
               self.centerHeading = result.tiles.centerHeading;
               self.panoLocation = result.location;
+              console.log("links", result.links)
               self.composePanorama();
           } else {
               if( self.onNoPanoramaData ) self.onNoPanoramaData( status );
