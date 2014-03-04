@@ -13,6 +13,8 @@ var normalCanvas;
 
 var $introContent = $('.js-intro-content');
 
+$('.js-intro').removeClass('inactive');
+
 var pano = new Pano();
 
 $('.js-start-btn').on('click touchstart', function(){
