@@ -592,6 +592,9 @@ p.generateNature = function(){\n\
   this.createClimbingFoliages();\n\
   this.createPlants();\n\
 \n\
+  this.tree1.position.z = Math.random()*10-5;\n\
+  this.tree2.position.z = Math.random()*10-5;\n\
+\n\
   if( !this.isRunning ) {\n\
     this.isRunning = true;\n\
     this.render();\n\
@@ -790,12 +793,16 @@ p.init3D = function(){\n\
   tree.lookAt(this.camera.position.clone());\n\
   this.scene.add(tree);\n\
 \n\
+  this.tree1 = tree;\n\
+\n\
   //tree2\n\
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(-40,0,0);\n\
   tree.lookAt(this.camera.position.clone());\n\
   this.scene.add(tree);\n\
+\n\
+  this.tree2 = tree;\n\
 \n\
   this.controller.handleResize();\n\
 \n\
