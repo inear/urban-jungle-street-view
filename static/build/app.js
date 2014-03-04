@@ -482,11 +482,12 @@ p.setLinks = function( links, centerHeading ) {\n\
       this.markers[i].active = false;\n\
     }\n\
   }\n\
-\n\
+  console.log(links)\n\
   for ( i = links.length - 1; i >= 0; i--) {\n\
 \n\
     this.markers[i].rotation.y = ((links[i].heading-90-centerHeading)*-1)*Math.PI/180;\n\
     this.markers[i].pano = links[i].pano;\n\
+    this.markers[i].description = links[i].description;\n\
     this.markers[i].active = true;\n\
     this.container.add(this.markers[i]);\n\
 \n\
@@ -836,7 +837,7 @@ p.onSceneClick = function(event){\n\
 //test nav\n\
   var intersects = raycaster.intersectObjects(this.nav.markers);\n\
   if (intersects.length > 0) {\n\
-    this.emit('panoLinkClicked', intersects[0].object.pano );\n\
+    this.emit('panoLinkClicked', intersects[0].object.pano,intersects[0].object.description );\n\
     return;\n\
   }\n\
 \n\
@@ -1319,6 +1320,7 @@ var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
 var $introContent = $('.js-intro-content');\n\
+var $loadingLabel = $('.js-loading-label');\n\
 \n\
 $('.js-intro').removeClass('inactive');\n\
 \n\
@@ -1326,10 +1328,16 @@ var pano = new Pano();\n\
 \n\
 $('.js-start-btn').on('click touchstart', function(){\n\
   $('.js-intro').fadeOut();\n\
+\n\
   pano.start();\n\
 });\n\
 \n\
-pano.on('panoLinkClicked', function(id){\n\
+pano.on('panoLinkClicked', function(id,description){\n\
+\n\
+  $loadingLabel.find('h1').html(description)\n\
+\n\
+  TweenMax.to($loadingLabel,1,{opacity:1});\n\
+\n\
   pano.fadeOut( function(){\n\
     _panoLoader.loadId(id);\n\
   });\n\
@@ -1427,6 +1435,10 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
   pano.setNormalMap(normalCanvas);\n\
 \n\
   pano.generateNature();\n\
+\n\
+  if( !pano.isIntro ) {\n\
+    TweenMax.to($loadingLabel,1,{opacity:0});\n\
+  }\n\
 \n\
   pano.setLinks(self.links, self.centerHeading );\n\
 \n\

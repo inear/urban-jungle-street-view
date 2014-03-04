@@ -338,7 +338,7 @@ p.onSceneClick = function(event){
 //test nav
   var intersects = raycaster.intersectObjects(this.nav.markers);
   if (intersects.length > 0) {
-    this.emit('panoLinkClicked', intersects[0].object.pano );
+    this.emit('panoLinkClicked', intersects[0].object.pano,intersects[0].object.description );
     return;
   }
 

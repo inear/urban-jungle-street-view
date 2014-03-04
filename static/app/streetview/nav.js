@@ -72,11 +72,12 @@ p.setLinks = function( links, centerHeading ) {
       this.markers[i].active = false;
     }
   }
-
+  console.log(links)
   for ( i = links.length - 1; i >= 0; i--) {
 
     this.markers[i].rotation.y = ((links[i].heading-90-centerHeading)*-1)*Math.PI/180;
     this.markers[i].pano = links[i].pano;
+    this.markers[i].description = links[i].description;
     this.markers[i].active = true;
     this.container.add(this.markers[i]);
 

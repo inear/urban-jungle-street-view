@@ -12,6 +12,7 @@ var depthCanvas;
 var normalCanvas;
 
 var $introContent = $('.js-intro-content');
+var $loadingLabel = $('.js-loading-label');
 
 $('.js-intro').removeClass('inactive');
 
@@ -19,10 +20,16 @@ var pano = new Pano();
 
 $('.js-start-btn').on('click touchstart', function(){
   $('.js-intro').fadeOut();
+
   pano.start();
 });
 
-pano.on('panoLinkClicked', function(id){
+pano.on('panoLinkClicked', function(id,description){
+
+  $loadingLabel.find('h1').html(description)
+
+  TweenMax.to($loadingLabel,1,{opacity:1});
+
   pano.fadeOut( function(){
     _panoLoader.loadId(id);
   });
@@ -120,6 +127,10 @@ _depthLoader.onDepthLoad = function( buffers ) {
   pano.setNormalMap(normalCanvas);
 
   pano.generateNature();
+
+  if( !pano.isIntro ) {
+    TweenMax.to($loadingLabel,1,{opacity:0});
+  }
 
   pano.setLinks(self.links, self.centerHeading );
 
