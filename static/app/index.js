@@ -11,14 +11,25 @@ var currentPanoLocation = null;
 var depthCanvas;
 var normalCanvas;
 
+var $introContent = $('.js-intro-content');
+
 var pano = new Pano();
+
+$('.js-start-btn').on('click touchstart', function(){
+  $('.js-intro').fadeOut();
+  pano.start();
+});
 
 pano.on('panoLinkClicked', function(id){
   pano.fadeOut( function(){
     _panoLoader.loadId(id);
   });
-
 })
+
+//this.onResize = this.onResize.bind(this);
+window.addEventListener('resize',onResize);
+
+onResize();
 
 
 _panoLoader.onPanoramaLoad = function() {
@@ -126,4 +137,13 @@ _depthLoader.onDepthLoad = function( buffers ) {
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));
 
+ function onResize() {
+  var w = window.innerWidth,
+    h = window.innerHeight;
+
+    TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });
+
+    pano.onResize(w,h);
+
+ }
 

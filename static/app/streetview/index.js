@@ -21,6 +21,7 @@ var isWebGL = function () {
 function PanoView(){
 
   this.time = 0;
+  this.isIntro = true;
   this.isRunning = false;
   this.fadeAmount = 1;
 
@@ -96,10 +97,19 @@ p.generateNature = function(){
   if( !this.isRunning ) {
     this.isRunning = true;
     this.render();
+
+    $('.js-start-btn').html('Start');
   }
 
-  this.fadeIn();
+  if( !this.isIntro ) {
+    this.fadeIn();
+  }
 
+}
+
+p.start = function() {
+  this.isIntro = false;
+  this.fadeIn();
 }
 
 p.fadeIn = function( callback ){
@@ -293,8 +303,6 @@ p.init3D = function(){
 
   $('#app')[0].appendChild( this.renderer.domElement );
 
-  window.addEventListener('resize',this.onWindowResize.bind(this));
-  this.onWindowResize();
 }
 
 p.setLinks = function( links, centerHeading ){
@@ -663,11 +671,14 @@ p.render = function(){
   this.composer.render( this.scene, this.camera );
 
   this.composer.pass( this.dirtPass );
-  this.composer.pass( this.bloomPass );
 
   if( this.fadeAmount ) {
     this.composer.pass( this.blurPass, null, this.fadeAmount*50 );
   }
+
+  this.composer.pass( this.bloomPass );
+
+
 
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);
@@ -716,11 +727,12 @@ p.setVisibleShown = function(child){
   child.visible = true;
 }
 
-p.onWindowResize  = function() {
+p.onResize  = function( w, h) {
 
-  var s = 1,
-    w = window.innerWidth,
-    h = window.innerHeight;
+  var s = 1;
+
+  this.camera.aspect = w / h;
+  this.camera.updateProjectionMatrix();
 
   this.renderer.setSize( s * w, s * h );
   this.composer.setSize( w, h );

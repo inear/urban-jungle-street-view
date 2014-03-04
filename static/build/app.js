@@ -519,6 +519,7 @@ var isWebGL = function () {\n\
 function PanoView(){\n\
 \n\
   this.time = 0;\n\
+  this.isIntro = true;\n\
   this.isRunning = false;\n\
   this.fadeAmount = 1;\n\
 \n\
@@ -594,10 +595,19 @@ p.generateNature = function(){\n\
   if( !this.isRunning ) {\n\
     this.isRunning = true;\n\
     this.render();\n\
+\n\
+    $('.js-start-btn').html('Start');\n\
   }\n\
 \n\
-  this.fadeIn();\n\
+  if( !this.isIntro ) {\n\
+    this.fadeIn();\n\
+  }\n\
 \n\
+}\n\
+\n\
+p.start = function() {\n\
+  this.isIntro = false;\n\
+  this.fadeIn();\n\
 }\n\
 \n\
 p.fadeIn = function( callback ){\n\
@@ -791,8 +801,6 @@ p.init3D = function(){\n\
 \n\
   $('#app')[0].appendChild( this.renderer.domElement );\n\
 \n\
-  window.addEventListener('resize',this.onWindowResize.bind(this));\n\
-  this.onWindowResize();\n\
 }\n\
 \n\
 p.setLinks = function( links, centerHeading ){\n\
@@ -1161,11 +1169,14 @@ p.render = function(){\n\
   this.composer.render( this.scene, this.camera );\n\
 \n\
   this.composer.pass( this.dirtPass );\n\
-  this.composer.pass( this.bloomPass );\n\
 \n\
   if( this.fadeAmount ) {\n\
     this.composer.pass( this.blurPass, null, this.fadeAmount*50 );\n\
   }\n\
+\n\
+  this.composer.pass( this.bloomPass );\n\
+\n\
+\n\
 \n\
   this.composer.toScreen();\n\
   //this.renderer.render(this.scene, this.camera);\n\
@@ -1214,11 +1225,12 @@ p.setVisibleShown = function(child){\n\
   child.visible = true;\n\
 }\n\
 \n\
-p.onWindowResize  = function() {\n\
+p.onResize  = function( w, h) {\n\
 \n\
-  var s = 1,\n\
-    w = window.innerWidth,\n\
-    h = window.innerHeight;\n\
+  var s = 1;\n\
+\n\
+  this.camera.aspect = w / h;\n\
+  this.camera.updateProjectionMatrix();\n\
 \n\
   this.renderer.setSize( s * w, s * h );\n\
   this.composer.setSize( w, h );\n\
@@ -1299,14 +1311,25 @@ var currentPanoLocation = null;\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
+var $introContent = $('.js-intro-content');\n\
+\n\
 var pano = new Pano();\n\
+\n\
+$('.js-start-btn').on('click touchstart', function(){\n\
+  $('.js-intro').fadeOut();\n\
+  pano.start();\n\
+});\n\
 \n\
 pano.on('panoLinkClicked', function(id){\n\
   pano.fadeOut( function(){\n\
     _panoLoader.loadId(id);\n\
   });\n\
-\n\
 })\n\
+\n\
+//this.onResize = this.onResize.bind(this);\n\
+window.addEventListener('resize',onResize);\n\
+\n\
+onResize();\n\
 \n\
 \n\
 _panoLoader.onPanoramaLoad = function() {\n\
@@ -1414,11 +1437,18 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
 \n\
+ function onResize() {\n\
+  var w = window.innerWidth,\n\
+    h = window.innerHeight;\n\
+\n\
+    TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });\n\
+\n\
+    pano.onResize(w,h);\n\
+\n\
+ }\n\
 \n\
 //@ sourceURL=urbanjungle/static/app/index.js"
 ));
-
-
 
 
 require.alias("streetview/nav.js", "urbanjungle/deps/streetview/nav.js");
