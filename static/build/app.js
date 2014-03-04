@@ -757,14 +757,14 @@ p.init3D = function(){\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(40,0,5);\n\
   tree.lookAt(this.camera.position.clone());\n\
-  //this.scene.add(tree);\n\
+  this.scene.add(tree);\n\
 \n\
   //tree2\n\
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(-40,0,0);\n\
   tree.lookAt(this.camera.position.clone());\n\
-  //this.scene.add(tree);\n\
+  this.scene.add(tree);\n\
 \n\
   this.controller.handleResize();\n\
 \n\
@@ -1269,6 +1269,8 @@ var self = {};\n\
 var _panoLoader = new GSVPANO.PanoLoader({zoom: 1});\n\
 var _depthLoader = new GSVPANO.PanoDepthLoader();\n\
 \n\
+var currentPanoLocation = null;\n\
+\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
@@ -1287,11 +1289,17 @@ _panoLoader.onPanoramaLoad = function() {\n\
   self.centerHeading = this.centerHeading;\n\
   self.links = this.links;\n\
 \n\
+  if( currentPanoLocation ) {\n\
+    var dist = google.maps.geometry.spherical.computeDistanceBetween(currentPanoLocation, this.panoLocation.latLng);\n\
+    console.log(dist);\n\
+  }\n\
+\n\
+  currentPanoLocation = this.panoLocation.latLng;\n\
 \n\
 };\n\
 \n\
 \n\
-_depthLoader.onDepthLoad = function() {\n\
+_depthLoader.onDepthLoad = function( buffers ) {\n\
   var x, y, context, image, w, h, c,pointer;\n\
 \n\
   if( !depthCanvas ) {\n\
@@ -1300,8 +1308,8 @@ _depthLoader.onDepthLoad = function() {\n\
 \n\
   context = depthCanvas.getContext('2d');\n\
 \n\
-  w = this.depthMap.width;\n\
-  h = this.depthMap.height;\n\
+  w = buffers.width;\n\
+  h = buffers.height;\n\
 \n\
   depthCanvas.setAttribute('width', w);\n\
   depthCanvas.setAttribute('height', h);\n\
@@ -1310,7 +1318,7 @@ _depthLoader.onDepthLoad = function() {\n\
 \n\
   for(y=0; y<h; ++y) {\n\
     for(x=0; x<w; ++x) {\n\
-      c = this.depthMap.depthMap[y*w + x] / 50 * 255;\n\
+      c = buffers.depthMap[y*w + x] / 50 * 255;\n\
       image.data[4*(y*w + x)    ] = c;\n\
       image.data[4*(y*w + x) + 1] = c;\n\
       image.data[4*(y*w + x) + 2] = c;\n\
@@ -1321,7 +1329,7 @@ _depthLoader.onDepthLoad = function() {\n\
   context.putImageData(image, 0, 0);\n\
 \n\
   //document.body.appendChild(panoCanvas);\n\
-  pano.setDepthData(this.depthMap.depthMap);\n\
+  pano.setDepthData(buffers.depthMap);\n\
   pano.setDepthMap(depthCanvas);\n\
 \n\
   if( !normalCanvas ) {\n\
@@ -1331,8 +1339,8 @@ _depthLoader.onDepthLoad = function() {\n\
 \n\
   context = normalCanvas.getContext('2d');\n\
 \n\
-  w = this.depthMap.width;\n\
-  h = this.depthMap.height;\n\
+  w = buffers.width;\n\
+  h = buffers.height;\n\
 \n\
   normalCanvas.setAttribute('width', w);\n\
   normalCanvas.setAttribute('height', h);\n\
@@ -1346,19 +1354,16 @@ _depthLoader.onDepthLoad = function() {\n\
     for(x=0; x<w; ++x) {\n\
       pointer += 3;\n\
       pixelIndex = (y*w + (w-x))*4;\n\
-      image.data[ pixelIndex ] = (this.normalMap.normalMap[pointer]+1)/2 * 255;\n\
-      image.data[pixelIndex + 1] = (this.normalMap.normalMap[pointer+1]+1)/2 * 255;\n\
-      image.data[pixelIndex + 2] = (this.normalMap.normalMap[pointer+2]+1)/2 * 255;\n\
+      image.data[ pixelIndex ] = (buffers.normalMap[pointer]+1)/2 * 255;\n\
+      image.data[pixelIndex + 1] = (buffers.normalMap[pointer+1]+1)/2 * 255;\n\
+      image.data[pixelIndex + 2] = (buffers.normalMap[pointer+2]+1)/2 * 255;\n\
       image.data[pixelIndex + 3] = 255;\n\
     }\n\
   }\n\
 \n\
-  pano.setNormalData(this.normalMap.normalMap);\n\
-\n\
   context.putImageData(image, 0, 0);\n\
 \n\
-\n\
-\n\
+  pano.setNormalData(buffers.normalMap);\n\
   pano.setNormalMap(normalCanvas);\n\
 \n\
   pano.generateNature();\n\
@@ -1368,13 +1373,13 @@ _depthLoader.onDepthLoad = function() {\n\
 }\n\
 \n\
 \n\
- _panoLoader.setZoom(2);\n\
- //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+ _panoLoader.setZoom(3);\n\
+ _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
  //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
  //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));\n\
 \n\
- _panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
+ //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
  //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
  //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
  //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\

@@ -259,14 +259,14 @@ p.init3D = function(){
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(40,0,5);
   tree.lookAt(this.camera.position.clone());
-  //this.scene.add(tree);
+  this.scene.add(tree);
 
   //tree2
   var treeTex = THREE.ImageUtils.loadTexture( 'assets/images/tree2.png' );
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(-40,0,0);
   tree.lookAt(this.camera.position.clone());
-  //this.scene.add(tree);
+  this.scene.add(tree);
 
   this.controller.handleResize();
 
