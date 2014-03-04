@@ -160,20 +160,38 @@ p.resetNature = function(){
 }
 
 p.createPlants = function(){
-  var totalPlants = 200;
+
   var created = false;
+
+
+
+  var totalPlants = 200;
   for (var i = 0; i < totalPlants; i++) {
     var point = this.get3DPointFromUV(0.35 + 0.3*Math.random(),1/totalPlants*i);
-
 
     var reflectedPoint = point.clone();
     reflectedPoint.z *= -1;
 
     created = this.plotIn3D(reflectedPoint);
 
+    /*if( created ) {
+      this.plotOnTexture(point);
+    }*/
+
+  };
+
+  totalPlants = 200;
+  for (var i = 0; i < totalPlants; i++) {
+    var point = this.get3DPointFromUV(0.55 + 0.3*Math.random(),0.4 + 1/totalPlants*i*0.2);
+
+    var reflectedPoint = point.clone();
+    reflectedPoint.z *= -1;
+
+    created = this.plotIn3D(reflectedPoint,false,2);
+/*
     if( created ) {
       this.plotOnTexture(point);
-    }
+    }*/
 
   };
 }
@@ -202,7 +220,7 @@ p.createEdgeFoliage = function(){
 }
 
 p.createClimbingFoliages = function(){
-  var divider = 32;
+  var divider = 16;
   var totalPlants = MAP_WIDTH/divider;
   var normal = new THREE.Vector3(0,-1,0);
   var created = false;
@@ -511,7 +529,7 @@ p.getPointData = function(point){
 
 }
 
-p.plotIn3D = function( point, forceType ){
+p.plotIn3D = function( point, forceType, extraScale ){
 
   var plant;
 
@@ -545,6 +563,10 @@ p.plotIn3D = function( point, forceType ){
     var v = plant.position.clone();
     v.add( normalInWorld );
     plant.lookAt(v);
+  }
+
+  if( extraScale ) {
+    plant.scale.multiplyScalar(extraScale);
   }
 
   //set position

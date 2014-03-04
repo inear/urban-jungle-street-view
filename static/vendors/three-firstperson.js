@@ -27,7 +27,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	this.constrainVertical = true;
 	this.verticalMin = Math.PI*0.2;
-	this.verticalMax = Math.PI*0.7;
+	this.verticalMax = Math.PI*0.6;
 
 	this.autoSpeedFactor = 0.0;
 

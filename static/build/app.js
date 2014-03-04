@@ -659,20 +659,38 @@ p.resetNature = function(){\n\
 }\n\
 \n\
 p.createPlants = function(){\n\
-  var totalPlants = 200;\n\
+\n\
   var created = false;\n\
+\n\
+\n\
+\n\
+  var totalPlants = 200;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
     var point = this.get3DPointFromUV(0.35 + 0.3*Math.random(),1/totalPlants*i);\n\
-\n\
 \n\
     var reflectedPoint = point.clone();\n\
     reflectedPoint.z *= -1;\n\
 \n\
     created = this.plotIn3D(reflectedPoint);\n\
 \n\
+    /*if( created ) {\n\
+      this.plotOnTexture(point);\n\
+    }*/\n\
+\n\
+  };\n\
+\n\
+  totalPlants = 200;\n\
+  for (var i = 0; i < totalPlants; i++) {\n\
+    var point = this.get3DPointFromUV(0.55 + 0.3*Math.random(),0.4 + 1/totalPlants*i*0.2);\n\
+\n\
+    var reflectedPoint = point.clone();\n\
+    reflectedPoint.z *= -1;\n\
+\n\
+    created = this.plotIn3D(reflectedPoint,false,2);\n\
+/*\n\
     if( created ) {\n\
       this.plotOnTexture(point);\n\
-    }\n\
+    }*/\n\
 \n\
   };\n\
 }\n\
@@ -701,7 +719,7 @@ p.createEdgeFoliage = function(){\n\
 }\n\
 \n\
 p.createClimbingFoliages = function(){\n\
-  var divider = 32;\n\
+  var divider = 16;\n\
   var totalPlants = MAP_WIDTH/divider;\n\
   var normal = new THREE.Vector3(0,-1,0);\n\
   var created = false;\n\
@@ -1010,7 +1028,7 @@ p.getPointData = function(point){\n\
 \n\
 }\n\
 \n\
-p.plotIn3D = function( point, forceType ){\n\
+p.plotIn3D = function( point, forceType, extraScale ){\n\
 \n\
   var plant;\n\
 \n\
@@ -1044,6 +1062,10 @@ p.plotIn3D = function( point, forceType ){\n\
     var v = plant.position.clone();\n\
     v.add( normalInWorld );\n\
     plant.lookAt(v);\n\
+  }\n\
+\n\
+  if( extraScale ) {\n\
+    plant.scale.multiplyScalar(extraScale);\n\
   }\n\
 \n\
   //set position\n\
