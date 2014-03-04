@@ -14,7 +14,10 @@ var normalCanvas;
 var pano = new Pano();
 
 pano.on('panoLinkClicked', function(id){
-  _panoLoader.loadId(id);
+  pano.fadeOut( function(){
+    _panoLoader.loadId(id);
+  });
+
 })
 
 

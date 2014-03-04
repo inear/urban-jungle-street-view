@@ -22,6 +22,7 @@ function PanoView(){
 
   this.time = 0;
   this.isRunning = false;
+  this.fadeAmount = 1;
 
   this.mouse2d = new THREE.Vector2();
 
@@ -97,6 +98,26 @@ p.generateNature = function(){
     this.render();
   }
 
+  this.fadeIn();
+
+}
+
+p.fadeIn = function( callback ){
+
+  if( !callback ) {
+    callback = function(){};
+  }
+
+  TweenMax.to(this,2,{fadeAmount:0});
+}
+
+p.fadeOut = function( callback ){
+
+  if( !callback ) {
+    callback = function(){};
+  }
+
+  TweenMax.to(this,1,{fadeAmount:1, onComplete:callback});
 }
 
 p.setPano = function( canvas ) {
@@ -201,9 +222,9 @@ p.init3D = function(){
   //this.renderer.sortElements = true;
 
   this.composer = new WAGNER.Composer( this.renderer );
-  this.vignettePass = new WAGNER.VignettePass();
+  this.blurPass = new WAGNER.FullBoxBlurPass();
   this.bloomPass = new WAGNER.MultiPassBloomPass();
-  this.noisePass = new WAGNER.NoisePass();
+
   this.dirtPass = new WAGNER.DirtPass();
 
   var groundMaskUniforms = {
@@ -643,6 +664,10 @@ p.render = function(){
 
   this.composer.pass( this.dirtPass );
   this.composer.pass( this.bloomPass );
+
+  if( this.fadeAmount ) {
+    this.composer.pass( this.blurPass, null, this.fadeAmount*50 );
+  }
 
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);

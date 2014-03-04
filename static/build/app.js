@@ -520,6 +520,7 @@ function PanoView(){\n\
 \n\
   this.time = 0;\n\
   this.isRunning = false;\n\
+  this.fadeAmount = 1;\n\
 \n\
   this.mouse2d = new THREE.Vector2();\n\
 \n\
@@ -595,6 +596,26 @@ p.generateNature = function(){\n\
     this.render();\n\
   }\n\
 \n\
+  this.fadeIn();\n\
+\n\
+}\n\
+\n\
+p.fadeIn = function( callback ){\n\
+\n\
+  if( !callback ) {\n\
+    callback = function(){};\n\
+  }\n\
+\n\
+  TweenMax.to(this,2,{fadeAmount:0});\n\
+}\n\
+\n\
+p.fadeOut = function( callback ){\n\
+\n\
+  if( !callback ) {\n\
+    callback = function(){};\n\
+  }\n\
+\n\
+  TweenMax.to(this,1,{fadeAmount:1, onComplete:callback});\n\
 }\n\
 \n\
 p.setPano = function( canvas ) {\n\
@@ -699,9 +720,9 @@ p.init3D = function(){\n\
   //this.renderer.sortElements = true;\n\
 \n\
   this.composer = new WAGNER.Composer( this.renderer );\n\
-  this.vignettePass = new WAGNER.VignettePass();\n\
+  this.blurPass = new WAGNER.FullBoxBlurPass();\n\
   this.bloomPass = new WAGNER.MultiPassBloomPass();\n\
-  this.noisePass = new WAGNER.NoisePass();\n\
+\n\
   this.dirtPass = new WAGNER.DirtPass();\n\
 \n\
   var groundMaskUniforms = {\n\
@@ -1142,6 +1163,10 @@ p.render = function(){\n\
   this.composer.pass( this.dirtPass );\n\
   this.composer.pass( this.bloomPass );\n\
 \n\
+  if( this.fadeAmount ) {\n\
+    this.composer.pass( this.blurPass, null, this.fadeAmount*50 );\n\
+  }\n\
+\n\
   this.composer.toScreen();\n\
   //this.renderer.render(this.scene, this.camera);\n\
   this.controller.update(0.1);\n\
@@ -1277,7 +1302,10 @@ var normalCanvas;\n\
 var pano = new Pano();\n\
 \n\
 pano.on('panoLinkClicked', function(id){\n\
-  _panoLoader.loadId(id);\n\
+  pano.fadeOut( function(){\n\
+    _panoLoader.loadId(id);\n\
+  });\n\
+\n\
 })\n\
 \n\
 \n\

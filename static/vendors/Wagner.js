@@ -100,7 +100,7 @@ WAGNER.Composer.prototype.toTexture = function( t ) {
 
 }
 
-WAGNER.Composer.prototype.pass = function( pass, uniforms ) {
+WAGNER.Composer.prototype.pass = function( pass, uniforms, value ) {
 
 	if( typeof pass === "string" ) {
 		this.quad.material = this.passes[ pass ];
@@ -110,7 +110,7 @@ WAGNER.Composer.prototype.pass = function( pass, uniforms ) {
 	}
 	if( pass instanceof WAGNER.Pass ) {
 		if( !pass.isLoaded() ) return;
-		pass.run( this );
+		pass.run( this, value );
 		return;
 	}
 
@@ -481,9 +481,10 @@ WAGNER.FullBoxBlurPass.prototype.isLoaded = function() {
 
 }
 
-WAGNER.FullBoxBlurPass.prototype.run = function( c ) {
+WAGNER.FullBoxBlurPass.prototype.run = function( c , v ) {
 
-	var v = 20;
+	//var v = v || 20;
+
 	this.boxPass.shader.uniforms.delta.value.set( v / c.width, 0 );
 	c.pass( this.boxPass.shader );
 	this.boxPass.shader.uniforms.delta.value.set( 0, v / c.height );
