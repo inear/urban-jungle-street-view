@@ -20,6 +20,8 @@ var isWebGL = function () {
 
 function PanoView(){
 
+  this._stage = $('#app')[0];
+
   this.time = 0;
   this.isIntro = true;
   this.isRunning = false;
@@ -34,14 +36,11 @@ function PanoView(){
   this.onSceneClick = this.onSceneClick.bind(this);
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
 
-  this.canvas = document.createElement( 'canvas' );
-  this.context = this.canvas.getContext( '2d' );
-
   this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );
 
   this.target = new THREE.Vector3( 0, 0, 0 );
 
-  this.controller = new THREE.FirstPersonControls(this.camera,document);
+  this.controller = new THREE.FirstPersonControls(this.camera,this._stage);
 
   // initialize object to perform world/screen calculations
   this.projector = new THREE.Projector();
@@ -765,5 +764,7 @@ p.onResize  = function( w, h) {
 
   this.renderer.setSize( s * w, s * h );
   this.composer.setSize( w, h );
+
+  this.controller.handleResize();
 
 }

@@ -29,7 +29,7 @@ footer, header, hgroup, menu, nav, section {
 	display: block;
 }
 body {
-	line-height: 1;
+
 }
 ol, ul {
 	list-style: none;
@@ -59,7 +59,6 @@ table {
 */
 
 html,body {
-  background-color: #000000;
   height:100%;
   width:100%;
   overflow:hidden;
@@ -149,5 +148,15 @@ html,body {
   position:absolute;
   top:0px;
   left:0px;
+}
+
+.map {
+  position:absolute;
+  margin:0 auto;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+  background-color: #126f4d;
 }
 

@@ -519,6 +519,8 @@ var isWebGL = function () {\n\
 \n\
 function PanoView(){\n\
 \n\
+  this._stage = $('#app')[0];\n\
+\n\
   this.time = 0;\n\
   this.isIntro = true;\n\
   this.isRunning = false;\n\
@@ -533,14 +535,11 @@ function PanoView(){\n\
   this.onSceneClick = this.onSceneClick.bind(this);\n\
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
 \n\
-  this.canvas = document.createElement( 'canvas' );\n\
-  this.context = this.canvas.getContext( '2d' );\n\
-\n\
   this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );\n\
 \n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
-  this.controller = new THREE.FirstPersonControls(this.camera,document);\n\
+  this.controller = new THREE.FirstPersonControls(this.camera,this._stage);\n\
 \n\
   // initialize object to perform world/screen calculations\n\
   this.projector = new THREE.Projector();\n\
@@ -1265,6 +1264,8 @@ p.onResize  = function( w, h) {\n\
   this.renderer.setSize( s * w, s * h );\n\
   this.composer.setSize( w, h );\n\
 \n\
+  this.controller.handleResize();\n\
+\n\
 }\n\
 //@ sourceURL=streetview/index.js"
 ));
@@ -1333,9 +1334,10 @@ require.register("urbanjungle/static/app/index.js", Function("exports, require, 
 var Pano = require('streetview');\n\
 \n\
 var self = {};\n\
-var _panoLoader = new GSVPANO.PanoLoader({zoom: 1});\n\
+var _panoLoader = new GSVPANO.PanoLoader({zoom: 3});\n\
 var _depthLoader = new GSVPANO.PanoDepthLoader();\n\
 \n\
+var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);\n\
 var currentPanoLocation = null;\n\
 \n\
 var depthCanvas;\n\
@@ -1350,20 +1352,185 @@ var pano = new Pano();\n\
 \n\
 $('.js-start-btn').on('click touchstart', function(){\n\
   $('.js-intro').fadeOut();\n\
-\n\
   pano.start();\n\
 });\n\
 \n\
 pano.on('panoLinkClicked', function(id,description){\n\
-\n\
   $loadingLabel.find('h1').html(description)\n\
 \n\
+  $loadingLabel.removeClass('inactive');\n\
   TweenMax.to($loadingLabel,1,{opacity:1});\n\
 \n\
   pano.fadeOut( function(){\n\
     _panoLoader.loadId(id);\n\
   });\n\
 })\n\
+\n\
+/*\n\
+\n\
+var el = document.getElementById( 'myLocationButton' );\n\
+el.addEventListener( 'click', function( event ) {\n\
+  event.preventDefault();\n\
+  navigator.geolocation.getCurrentPosition( geoSuccess, geoError );\n\
+}, false );\n\
+\n\
+  navigator.pointer = navigator.pointer || navigator.webkitPointer;\n\
+\n\
+  function lockPointer () {\n\
+    if( navigator.pointer ) {\n\
+      navigator.pointer.lock( container, function() {\n\
+        console.log( 'Pointer locked' );\n\
+      }, function() {\n\
+        console.log( 'No pointer lock' );\n\
+      } );\n\
+    }\n\
+  }\n\
+\n\
+  var el = document.getElementById( 'fullscreenButton' );\n\
+  if( el ) {\n\
+    el.addEventListener( 'click', function( e ) {\n\
+      container.onwebkitfullscreenchange = function(e) {\n\
+        lockPointer();\n\
+        container.onwebkitfullscreenchange = function() {\n\
+        };\n\
+      };\n\
+      container.onmozfullscreenchange = function(e) {\n\
+        lockPointer();\n\
+        container.onmozfullscreenchange = function() {\n\
+        };\n\
+      };\n\
+      if( container.webkitRequestFullScreen ) container.webkitRequestFullScreen();\n\
+      if( container.mozRequestFullScreen ) container.mozRequestFullScreen();\n\
+      e.preventDefault();\n\
+    }, false );\n\
+  }\n\
+\n\
+  function geoSuccess( position ) {\n\
+\n\
+    var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
+    map.panTo( currentLocation );\n\
+    addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
+\n\
+  }\n\
+\n\
+  function geoError( message ) {\n\
+    showError( message );\n\
+  }\n\
+  */\n\
+\n\
+var marker;\n\
+\n\
+var styleArray = [\n\
+  {\"stylers\": [\n\
+    { \"visibility\": \"off\" },\n\
+  ]},\n\
+  {\n\
+    \"featureType\": \"landscape.man_made\",\n\
+    \"stylers\": [\n\
+      { \"visibility\": \"on\" },\n\
+      { \"hue\": \"#00ff11\" },\n\
+      { \"saturation\": 53 },\n\
+      { \"gamma\": 0.26 },\n\
+      { \"lightness\": -75 }\n\
+    ]\n\
+  },\n\
+  {\n\
+    featureType: \"road\",\n\
+    elementType: \"geometry\",\n\
+    stylers: [\n\
+      { \"visibility\": \"simplified\" },\n\
+      { color: \"#065337\" }\n\
+    ]\n\
+  },\n\
+  {\n\
+    featureType: \"landscape.natural\",\n\
+    elementType: \"geometry\",\n\
+    stylers: [\n\
+      { color: \"#126f4d\" }\n\
+    ]\n\
+  },\n\
+  {\n\
+    \"featureType\": \"landscape.man_made\",\n\
+    \"stylers\": [\n\
+      { \"visibility\": \"simplified\" }\n\
+    ]\n\
+  },\n\
+  {\n\
+    \"featureType\": \"road\",\n\
+    \"elementType\": \"labels.text.fill\",\n\
+    \"stylers\": [\n\
+      { \"visibility\": \"on\" },\n\
+      { \"color\": \"#033a26\" }\n\
+    ]\n\
+  },\n\
+  {\n\
+    \"featureType\": \"water\",\n\
+    \"elementType\": \"geometry.fill\",\n\
+    \"stylers\": [\n\
+      { \"visibility\": \"on\" },\n\
+      { \"color\": \"#2f4d5f\" }\n\
+    ]\n\
+  },\n\
+  {\n\
+    \"featureType\": \"landscape.natural\",\n\
+    \"elementType\": \"geometry.fill\",\n\
+    \"stylers\": [\n\
+      { \"visibility\": \"on\" },\n\
+      { \"color\": \"#006943\" }\n\
+    ]\n\
+  }\n\
+];\n\
+\n\
+var myOptions = {\n\
+  zoom: 17,\n\
+  center: defaultLatlng,\n\
+  mapTypeId: google.maps.MapTypeId.ROADMAP,\n\
+  tilt:45,\n\
+  disableDefaultUI:true,\n\
+  streetViewControl: false,\n\
+  styles: styleArray\n\
+}\n\
+var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );\n\
+\n\
+google.maps.event.addListener(map, 'click', function(event) {\n\
+  addMarker(event.latLng);\n\
+});\n\
+\n\
+var geocoder = new google.maps.Geocoder();\n\
+\n\
+var el = document.getElementById( 'searchButton' );\n\
+el.addEventListener( 'click', function( event ) {\n\
+  event.preventDefault();\n\
+  findAddress( document.getElementById(\"address\").value );\n\
+}, false );\n\
+\n\
+\n\
+function findAddress( address ) {\n\
+\n\
+  //showMessage( 'Getting coordinates...' );\n\
+\n\
+  geocoder.geocode( { 'address': address}, function(results, status) {\n\
+    if (status == google.maps.GeocoderStatus.OK) {\n\
+      map.setCenter(results[0].geometry.location);\n\
+      //showMessage( 'Address found.' );\n\
+      addMarker( results[0].geometry.location );\n\
+    } else {\n\
+      //showError(\"Geocode was not successful for the following reason: \" + status);\n\
+      //showProgress( false );\n\
+    }\n\
+  });\n\
+}\n\
+\n\
+\n\
+function addMarker(location) {\n\
+  if( marker ) marker.setMap( null );\n\
+  marker = new google.maps.Marker({\n\
+    position: location,\n\
+    map: map\n\
+  });\n\
+  marker.setMap( map );\n\
+  _panoLoader.load( location );\n\
+}\n\
 \n\
 //this.onResize = this.onResize.bind(this);\n\
 window.addEventListener('resize',onResize);\n\
@@ -1467,8 +1634,8 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
 }\n\
 \n\
 \n\
- _panoLoader.setZoom(3);\n\
- _panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
+\n\
+ //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
  //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
 \n\
  //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));\n\

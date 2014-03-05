@@ -21,17 +21,27 @@
   <div id="app" class="streetview">
 
   </div>
+
   <div class="fullvp intro-container js-intro inactive">
+
+    <div id="map" class="map"></div>
+
     <div class="intro-content js-intro-content">
       <h1>Urban Jungle Streetview</h1>
       <div class="start-btn js-start-btn">Loading</div>
+
+      <form id="map_form">
+        <input type="text" name="address" id="address">
+        <button type="submit" class="primary button" id="searchButton">Search</button>
+      </form>
     </div>
   </div>
 
 
-  <div class="vAlign-center loading-label js-loading-label">
+  <div class="vAlign-center loading-label js-loading-label inactive">
     <h1>3:nd Street Avenue</h1>
   </div>
+
 
 
 </body>
