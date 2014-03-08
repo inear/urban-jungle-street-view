@@ -15,6 +15,23 @@ var normalCanvas;
 var $introContent = $('.js-intro-content');
 var $loadingLabel = $('.js-loading-label');
 
+$('#choice-default-1').on('click', function(){
+  var to = new google.maps.LatLng(40.759101,-73.984406)
+  _panoLoader.load(to);
+  map.panTo( to );
+  //addMarker( currentLocation );
+})
+
+$('#choice-default-2').on('click', function(){
+  var to = new google.maps.LatLng(22.300546,114.17276)
+  _panoLoader.load(to);
+  map.panTo( to );
+})
+
+$('#choice-location').on('click', function(){
+  navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
+})
+
 $('.js-intro').removeClass('inactive');
 
 var pano = new Pano();
@@ -35,6 +52,7 @@ pano.on('panoLinkClicked', function(id,description){
   });
 })
 
+Draggable.create("#pegman", {type:"x,y", edgeResistance:0.5, throwProps:true, bounds:window});
 /*
 
 var el = document.getElementById( 'myLocationButton' );
@@ -74,18 +92,20 @@ el.addEventListener( 'click', function( event ) {
     }, false );
   }
 
-  function geoSuccess( position ) {
-
-    var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
-    map.panTo( currentLocation );
-    addMarker( currentLocation ); // move to position (thanks @theCole!)
-
-  }
-
-  function geoError( message ) {
-    showError( message );
-  }
   */
+
+
+function geoSuccess( position ) {
+
+  var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
+  map.panTo( currentLocation );
+  addMarker( currentLocation ); // move to position (thanks @theCole!)
+
+}
+
+function geoError( message ) {
+  showError( message );
+}
 
 var marker;
 
@@ -156,7 +176,7 @@ var myOptions = {
   mapTypeId: google.maps.MapTypeId.ROADMAP,
   tilt:45,
   disableDefaultUI:true,
-  streetViewControl: false,
+  streetViewControl: true,
   styles: styleArray
 }
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );
@@ -173,6 +193,21 @@ el.addEventListener( 'click', function( event ) {
   findAddress( document.getElementById("address").value );
 }, false );
 
+var streetViewLayer = new google.maps.StreetViewCoverageLayer();
+
+$("body").on('mousedown', function(){
+  streetViewLayer.setMap(map);
+})
+
+$("body").on('mouseup', function(){
+  streetViewLayer.setMap();
+})
+
+
+
+
+
+document.getElementById("address").focus();
 
 function findAddress( address ) {
 
@@ -315,6 +350,7 @@ _depthLoader.onDepthLoad = function( buffers ) {
  //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));
+ //_panoLoader.load(new google.maps.LatLng(22.300546,114.17276));
 
  function onResize() {
   var w = window.innerWidth,

@@ -1,8 +1,8 @@
 http_path = "/"
-http_images_path = "img"
+http_images_path = "images"
 css_dir = "prod/css"
 sass_dir = "static/sass"
-images_dir = "static/img"
+images_dir = "static/images"
 javascripts_dir = "static/app"
 fonts_dir = "static/fonts"
 

@@ -1346,6 +1346,23 @@ var normalCanvas;\n\
 var $introContent = $('.js-intro-content');\n\
 var $loadingLabel = $('.js-loading-label');\n\
 \n\
+$('#choice-default-1').on('click', function(){\n\
+  var to = new google.maps.LatLng(40.759101,-73.984406)\n\
+  _panoLoader.load(to);\n\
+  map.panTo( to );\n\
+  //addMarker( currentLocation );\n\
+})\n\
+\n\
+$('#choice-default-2').on('click', function(){\n\
+  var to = new google.maps.LatLng(22.300546,114.17276)\n\
+  _panoLoader.load(to);\n\
+  map.panTo( to );\n\
+})\n\
+\n\
+$('#choice-location').on('click', function(){\n\
+  navigator.geolocation.getCurrentPosition( geoSuccess, geoError );\n\
+})\n\
+\n\
 $('.js-intro').removeClass('inactive');\n\
 \n\
 var pano = new Pano();\n\
@@ -1366,6 +1383,7 @@ pano.on('panoLinkClicked', function(id,description){\n\
   });\n\
 })\n\
 \n\
+Draggable.create(\"#pegman\", {type:\"x,y\", edgeResistance:0.5, throwProps:true, bounds:window});\n\
 /*\n\
 \n\
 var el = document.getElementById( 'myLocationButton' );\n\
@@ -1405,18 +1423,20 @@ el.addEventListener( 'click', function( event ) {\n\
     }, false );\n\
   }\n\
 \n\
-  function geoSuccess( position ) {\n\
-\n\
-    var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
-    map.panTo( currentLocation );\n\
-    addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
-\n\
-  }\n\
-\n\
-  function geoError( message ) {\n\
-    showError( message );\n\
-  }\n\
   */\n\
+\n\
+\n\
+function geoSuccess( position ) {\n\
+\n\
+  var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
+  map.panTo( currentLocation );\n\
+  addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
+\n\
+}\n\
+\n\
+function geoError( message ) {\n\
+  showError( message );\n\
+}\n\
 \n\
 var marker;\n\
 \n\
@@ -1487,7 +1507,7 @@ var myOptions = {\n\
   mapTypeId: google.maps.MapTypeId.ROADMAP,\n\
   tilt:45,\n\
   disableDefaultUI:true,\n\
-  streetViewControl: false,\n\
+  streetViewControl: true,\n\
   styles: styleArray\n\
 }\n\
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );\n\
@@ -1504,6 +1524,21 @@ el.addEventListener( 'click', function( event ) {\n\
   findAddress( document.getElementById(\"address\").value );\n\
 }, false );\n\
 \n\
+var streetViewLayer = new google.maps.StreetViewCoverageLayer();\n\
+\n\
+$(\"body\").on('mousedown', function(){\n\
+  streetViewLayer.setMap(map);\n\
+})\n\
+\n\
+$(\"body\").on('mouseup', function(){\n\
+  streetViewLayer.setMap();\n\
+})\n\
+\n\
+\n\
+\n\
+\n\
+\n\
+document.getElementById(\"address\").focus();\n\
 \n\
 function findAddress( address ) {\n\
 \n\
@@ -1646,6 +1681,7 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
  //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\
  //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
  //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
+ //_panoLoader.load(new google.maps.LatLng(22.300546,114.17276));\n\
 \n\
  function onResize() {\n\
   var w = window.innerWidth,\n\
