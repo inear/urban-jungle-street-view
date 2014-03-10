@@ -1341,18 +1341,23 @@ var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);\n\
 var currentPanoLocation = null;\n\
 \n\
 var mouse2d = new google.maps.Point();\n\
-\n\
+var pegmanTimeout;\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
+var TALK_DEFAULT = 'Choose your location and<br>pick me up!';\n\
+\n\
 var $map = $('#map');\n\
 var $intro = $('.js-intro');\n\
+var $message = $('.js-message');\n\
 var $introContent = $('.js-intro-content');\n\
 var $loadingLabel = $('.js-loading-label');\n\
 \n\
+pegmanTalk(TALK_DEFAULT);\n\
+\n\
 $('#backToMap').on('click', function(){\n\
 \n\
-  pegmanTalk('Choose your location and<br>pick me up!');\n\
+  pegmanTalk(TALK_DEFAULT);\n\
 \n\
   pano.fadeOut( function(){\n\
     $map.fadeIn();\n\
@@ -1416,8 +1421,19 @@ Draggable.create($pegman, {\n\
   onDragEnd:onEndDragPegman\n\
 });\n\
 \n\
-function pegmanTalk( msg ){\n\
-  $('.js-message').html(msg);\n\
+function pegmanTalk( msg, timeout ){\n\
+  $message.html(msg);\n\
+\n\
+  TweenMax.fromTo($message,0.3,{x:0},{x:10,yoyo:true});\n\
+\n\
+  if( timeout ) {\n\
+    if( pegmanTimeout ) {\n\
+      clearTimeout(pegmanTimeout);\n\
+    }\n\
+    pegmanTimeout = setTimeout(function(){\n\
+      pegmanTalk(TALK_DEFAULT)\n\
+    },timeout*1000)\n\
+  }\n\
 }\n\
 \n\
 function onStartDragPegman(){\n\
@@ -1514,7 +1530,7 @@ el.addEventListener( 'click', function( event ) {\n\
 \n\
 \n\
 function geoSuccess( position ) {\n\
-\n\
+  pegmanTalk('I can see you!',2)\n\
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
   map.panTo( currentLocation );\n\
   //addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
@@ -1522,7 +1538,7 @@ function geoSuccess( position ) {\n\
 }\n\
 \n\
 function geoError( message ) {\n\
-  showError( message );\n\
+  pegmanTalk( \"I can't see where you are\" , 4 );\n\
 }\n\
 \n\
 var marker;\n\
@@ -1646,10 +1662,10 @@ function findAddress( address ) {\n\
   geocoder.geocode( { 'address': address}, function(results, status) {\n\
     if (status == google.maps.GeocoderStatus.OK) {\n\
       map.setCenter(results[0].geometry.location);\n\
-      //showMessage( 'Address found.' );\n\
-      addMarker( results[0].geometry.location );\n\
+      pegmanTalk(\"Found the place, let's go!\",3);\n\
+      //addMarker( results[0].geometry.location );\n\
     } else {\n\
-      //showError(\"Geocode was not successful for the following reason: \" + status);\n\
+      pegmanTalk(\"Could not find the location\",5);\n\
       //showProgress( false );\n\
     }\n\
   });\n\

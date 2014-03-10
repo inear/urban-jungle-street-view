@@ -10,18 +10,23 @@ var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);
 var currentPanoLocation = null;
 
 var mouse2d = new google.maps.Point();
-
+var pegmanTimeout;
 var depthCanvas;
 var normalCanvas;
 
+var TALK_DEFAULT = 'Choose your location and<br>pick me up!';
+
 var $map = $('#map');
 var $intro = $('.js-intro');
+var $message = $('.js-message');
 var $introContent = $('.js-intro-content');
 var $loadingLabel = $('.js-loading-label');
 
+pegmanTalk(TALK_DEFAULT);
+
 $('#backToMap').on('click', function(){
 
-  pegmanTalk('Choose your location and<br>pick me up!');
+  pegmanTalk(TALK_DEFAULT);
 
   pano.fadeOut( function(){
     $map.fadeIn();
@@ -85,8 +90,19 @@ Draggable.create($pegman, {
   onDragEnd:onEndDragPegman
 });
 
-function pegmanTalk( msg ){
-  $('.js-message').html(msg);
+function pegmanTalk( msg, timeout ){
+  $message.html(msg);
+
+  TweenMax.fromTo($message,0.3,{x:0},{x:10,yoyo:true});
+
+  if( timeout ) {
+    if( pegmanTimeout ) {
+      clearTimeout(pegmanTimeout);
+    }
+    pegmanTimeout = setTimeout(function(){
+      pegmanTalk(TALK_DEFAULT)
+    },timeout*1000)
+  }
 }
 
 function onStartDragPegman(){
@@ -183,7 +199,7 @@ el.addEventListener( 'click', function( event ) {
 
 
 function geoSuccess( position ) {
-
+  pegmanTalk('I can see you!',2)
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
   map.panTo( currentLocation );
   //addMarker( currentLocation ); // move to position (thanks @theCole!)
@@ -191,7 +207,7 @@ function geoSuccess( position ) {
 }
 
 function geoError( message ) {
-  showError( message );
+  pegmanTalk( "I can't see where you are" , 4 );
 }
 
 var marker;
@@ -315,10 +331,10 @@ function findAddress( address ) {
   geocoder.geocode( { 'address': address}, function(results, status) {
     if (status == google.maps.GeocoderStatus.OK) {
       map.setCenter(results[0].geometry.location);
-      //showMessage( 'Address found.' );
-      addMarker( results[0].geometry.location );
+      pegmanTalk("Found the place, let's go!",3);
+      //addMarker( results[0].geometry.location );
     } else {
-      //showError("Geocode was not successful for the following reason: " + status);
+      pegmanTalk("Could not find the location",5);
       //showProgress( false );
     }
   });
