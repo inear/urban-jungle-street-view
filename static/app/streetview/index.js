@@ -28,6 +28,16 @@ function PanoView(){
   this.fadeAmount = 1;
 
   this.mouse2d = new THREE.Vector2();
+  this.isUserInteracting = false;
+  this.onMouseDownMouseX = 0;
+  this.onMouseDownMouseY = 0;
+  this.lon = 90;
+  this.onMouseDownLon = 0;
+  this.lat = 0;
+  this.onMouseDownLat = 0;
+  this.phi = 0;
+  this.theta = 0;
+  this.target = new THREE.Vector3();
 
   this.normalMapCanvas = null;
   this.depthData = null;
@@ -40,7 +50,7 @@ function PanoView(){
 
   this.target = new THREE.Vector3( 0, 0, 0 );
 
-  this.controller = new THREE.FirstPersonControls(this.camera,this._stage);
+  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this._stage);
 
   // initialize object to perform world/screen calculations
   this.projector = new THREE.Projector();
@@ -243,6 +253,7 @@ p.createClimbingFoliages = function(){
 
 p.init3D = function(){
 
+
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
   this.renderer.autoClearColor = false;
   this.renderer.setClearColor(0xffffff,1);
@@ -323,7 +334,7 @@ p.init3D = function(){
 
   this.tree2 = tree;
 
-  this.controller.handleResize();
+  //this.controller.handleResize();
 
   $('#app')[0].appendChild( this.renderer.domElement );
 
@@ -336,12 +347,96 @@ p.setLinks = function( links, centerHeading ){
 p.initEvents = function(){
   $(this.renderer.domElement).on('click', this.onSceneClick);
 
+  this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
+  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
+  this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);
+  //this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);
+
+  this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);
+  this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);
+
+  document.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
   document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
+  document.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
+  //document.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
+
+  document.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
+  document.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
 }
 
-p.onDocumentMouseMove = function(event){
-  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+p.onDocumentMouseDown = function( event ) {
+
+  event.preventDefault();
+
+  this.isUserInteracting = true;
+
+  this.onPointerDownPointerX = event.clientX;
+  this.onPointerDownPointerY = event.clientY;
+
+  this.onPointerDownLon = this.lon;
+  this.onPointerDownLat = this.lat;
+
+}
+
+p.onDocumentMouseMove = function( event ) {
+
+  if ( this.isUserInteracting ) {
+
+    this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;
+    this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
+    this.render();
+
+    this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  }
+}
+
+p.onDocumentMouseUp = function( event ) {
+  this.isUserInteracting = false;
+  this.render();
+
+}
+
+p.onDocumentMouseWheel = function( event ) {
+  this.camera.fov -= event.wheelDeltaY * 0.05;
+  this.camera.updateProjectionMatrix();
+  this.render();
+
+}
+
+p.onDocumentTouchStart = function( event ) {
+
+  if ( event.touches.length == 1 ) {
+
+    event.preventDefault();
+
+    this.onPointerDownPointerX = event.touches[ 0 ].pageX;
+    this.onPointerDownPointerY = event.touches[ 0 ].pageY;
+
+    this.onPointerDownLon = this.lon;
+    this.onPointerDownLat = this.lat;
+
+  }
+
+}
+
+p.onDocumentTouchMove = function( event ) {
+
+  if ( event.touches.length == 1 ) {
+
+    event.preventDefault();
+
+    this.lon = ( this.onPointerDownPointerX - event.touches[0].pageX ) * 0.1 + this.onPointerDownLon;
+    this.lat = ( event.touches[0].pageY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
+
+    this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;
+    this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;
+
+    this.render();
+
+  }
+
 }
 
 p.onSceneClick = function(event){
@@ -710,7 +805,17 @@ p.render = function(){
 
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);
-  this.controller.update(0.1);
+
+  this.lat = Math.max( - 85, Math.min( 85, this.lat ) );
+  this.phi = ( 90 - this.lat ) * Math.PI / 180;
+  this.theta = this.lon * Math.PI / 180;
+
+  this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );
+  this.target.y = 500 * Math.cos( this.phi );
+  this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );
+
+  this.camera.lookAt( this.target );
+
   this.time += 0.01;
 
   raf(this.render);
@@ -765,6 +870,6 @@ p.onResize  = function( w, h) {
   this.renderer.setSize( s * w, s * h );
   this.composer.setSize( w, h );
 
-  this.controller.handleResize();
+  //this.controller.handleResize();
 
 }

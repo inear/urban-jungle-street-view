@@ -527,6 +527,16 @@ function PanoView(){\n\
   this.fadeAmount = 1;\n\
 \n\
   this.mouse2d = new THREE.Vector2();\n\
+  this.isUserInteracting = false;\n\
+  this.onMouseDownMouseX = 0;\n\
+  this.onMouseDownMouseY = 0;\n\
+  this.lon = 90;\n\
+  this.onMouseDownLon = 0;\n\
+  this.lat = 0;\n\
+  this.onMouseDownLat = 0;\n\
+  this.phi = 0;\n\
+  this.theta = 0;\n\
+  this.target = new THREE.Vector3();\n\
 \n\
   this.normalMapCanvas = null;\n\
   this.depthData = null;\n\
@@ -539,7 +549,7 @@ function PanoView(){\n\
 \n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
-  this.controller = new THREE.FirstPersonControls(this.camera,this._stage);\n\
+  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this._stage);\n\
 \n\
   // initialize object to perform world/screen calculations\n\
   this.projector = new THREE.Projector();\n\
@@ -742,6 +752,7 @@ p.createClimbingFoliages = function(){\n\
 \n\
 p.init3D = function(){\n\
 \n\
+\n\
   this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
   this.renderer.autoClearColor = false;\n\
   this.renderer.setClearColor(0xffffff,1);\n\
@@ -822,7 +833,7 @@ p.init3D = function(){\n\
 \n\
   this.tree2 = tree;\n\
 \n\
-  this.controller.handleResize();\n\
+  //this.controller.handleResize();\n\
 \n\
   $('#app')[0].appendChild( this.renderer.domElement );\n\
 \n\
@@ -835,12 +846,96 @@ p.setLinks = function( links, centerHeading ){\n\
 p.initEvents = function(){\n\
   $(this.renderer.domElement).on('click', this.onSceneClick);\n\
 \n\
+  this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);\n\
+  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
+  this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);\n\
+  //this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);\n\
+\n\
+  this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);\n\
+  this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);\n\
+\n\
+  document.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
   document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
+  document.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
+  //document.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
+\n\
+  document.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
+  document.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
-p.onDocumentMouseMove = function(event){\n\
-  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
-  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
+p.onDocumentMouseDown = function( event ) {\n\
+\n\
+  event.preventDefault();\n\
+\n\
+  this.isUserInteracting = true;\n\
+\n\
+  this.onPointerDownPointerX = event.clientX;\n\
+  this.onPointerDownPointerY = event.clientY;\n\
+\n\
+  this.onPointerDownLon = this.lon;\n\
+  this.onPointerDownLat = this.lat;\n\
+\n\
+}\n\
+\n\
+p.onDocumentMouseMove = function( event ) {\n\
+\n\
+  if ( this.isUserInteracting ) {\n\
+\n\
+    this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;\n\
+    this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
+    this.render();\n\
+\n\
+    this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
+    this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
+\n\
+  }\n\
+}\n\
+\n\
+p.onDocumentMouseUp = function( event ) {\n\
+  this.isUserInteracting = false;\n\
+  this.render();\n\
+\n\
+}\n\
+\n\
+p.onDocumentMouseWheel = function( event ) {\n\
+  this.camera.fov -= event.wheelDeltaY * 0.05;\n\
+  this.camera.updateProjectionMatrix();\n\
+  this.render();\n\
+\n\
+}\n\
+\n\
+p.onDocumentTouchStart = function( event ) {\n\
+\n\
+  if ( event.touches.length == 1 ) {\n\
+\n\
+    event.preventDefault();\n\
+\n\
+    this.onPointerDownPointerX = event.touches[ 0 ].pageX;\n\
+    this.onPointerDownPointerY = event.touches[ 0 ].pageY;\n\
+\n\
+    this.onPointerDownLon = this.lon;\n\
+    this.onPointerDownLat = this.lat;\n\
+\n\
+  }\n\
+\n\
+}\n\
+\n\
+p.onDocumentTouchMove = function( event ) {\n\
+\n\
+  if ( event.touches.length == 1 ) {\n\
+\n\
+    event.preventDefault();\n\
+\n\
+    this.lon = ( this.onPointerDownPointerX - event.touches[0].pageX ) * 0.1 + this.onPointerDownLon;\n\
+    this.lat = ( event.touches[0].pageY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
+\n\
+    this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;\n\
+    this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;\n\
+\n\
+    this.render();\n\
+\n\
+  }\n\
+\n\
 }\n\
 \n\
 p.onSceneClick = function(event){\n\
@@ -1209,7 +1304,17 @@ p.render = function(){\n\
 \n\
   this.composer.toScreen();\n\
   //this.renderer.render(this.scene, this.camera);\n\
-  this.controller.update(0.1);\n\
+\n\
+  this.lat = Math.max( - 85, Math.min( 85, this.lat ) );\n\
+  this.phi = ( 90 - this.lat ) * Math.PI / 180;\n\
+  this.theta = this.lon * Math.PI / 180;\n\
+\n\
+  this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );\n\
+  this.target.y = 500 * Math.cos( this.phi );\n\
+  this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );\n\
+\n\
+  this.camera.lookAt( this.target );\n\
+\n\
   this.time += 0.01;\n\
 \n\
   raf(this.render);\n\
@@ -1264,7 +1369,7 @@ p.onResize  = function( w, h) {\n\
   this.renderer.setSize( s * w, s * h );\n\
   this.composer.setSize( w, h );\n\
 \n\
-  this.controller.handleResize();\n\
+  //this.controller.handleResize();\n\
 \n\
 }\n\
 //@ sourceURL=streetview/index.js"
@@ -1345,7 +1450,7 @@ var pegmanTimeout;\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
-var TALK_DEFAULT = 'Choose your location below<br>and pick me up!';\n\
+var TALK_DEFAULT = 'Choose your location<br>and pick me up!';\n\
 \n\
 var $map = $('#map');\n\
 var $intro = $('.js-intro');\n\
