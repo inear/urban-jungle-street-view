@@ -29,6 +29,7 @@ function PanoView(){
 
   this.mouse2d = new THREE.Vector2();
   this.isUserInteracting = false;
+  this.isUserInteractingTime = 0;
   this.onMouseDownMouseX = 0;
   this.onMouseDownMouseY = 0;
   this.lon = 90;
@@ -345,7 +346,7 @@ p.setLinks = function( links, centerHeading ){
 }
 
 p.initEvents = function(){
-  $(this.renderer.domElement).on('click', this.onSceneClick);
+  //$(this.renderer.domElement).on('click', this.onSceneClick);
 
   this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
@@ -353,6 +354,7 @@ p.initEvents = function(){
   this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);
 
   this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);
+  this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);
 
   this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
@@ -361,6 +363,7 @@ p.initEvents = function(){
   this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
 
   this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
+  this.renderer.domElement.addEventListener( 'touchend', this.onDocumentTouchEnd, false );
   this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
 }
 
@@ -369,6 +372,7 @@ p.onDocumentMouseDown = function( event ) {
   event.preventDefault();
 
   this.isUserInteracting = true;
+  this.isUserInteractingTime = Date.now();
 
   this.onPointerDownPointerX = event.clientX;
   this.onPointerDownPointerY = event.clientY;
@@ -385,14 +389,17 @@ p.onDocumentMouseMove = function( event ) {
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
 
-    this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
   }
+
+  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }
 
 p.onDocumentMouseUp = function( event ) {
   this.isUserInteracting = false;
+  if( Date.now()- this.isUserInteractingTime  < 300 ) {
+    this.onSceneClick(event);
+  }
 
 }
 
@@ -407,6 +414,9 @@ p.onDocumentTouchStart = function( event ) {
 
     event.preventDefault();
 
+    this.isUserInteractingTime = Date.now();
+    this.isUserInteracting = true;
+
     this.onPointerDownPointerX = event.touches[ 0 ].pageX;
     this.onPointerDownPointerY = event.touches[ 0 ].pageY;
 
@@ -415,6 +425,13 @@ p.onDocumentTouchStart = function( event ) {
 
   }
 
+}
+
+p.onDocumentTouchEnd = function( event ){
+  this.isUserInteracting = false;
+  if( Date.now()- this.isUserInteractingTime  < 300 ) {
+    this.onSceneClick(event);
+  }
 }
 
 p.onDocumentTouchMove = function( event ) {

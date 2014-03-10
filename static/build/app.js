@@ -528,6 +528,7 @@ function PanoView(){\n\
 \n\
   this.mouse2d = new THREE.Vector2();\n\
   this.isUserInteracting = false;\n\
+  this.isUserInteractingTime = 0;\n\
   this.onMouseDownMouseX = 0;\n\
   this.onMouseDownMouseY = 0;\n\
   this.lon = 90;\n\
@@ -844,7 +845,7 @@ p.setLinks = function( links, centerHeading ){\n\
 }\n\
 \n\
 p.initEvents = function(){\n\
-  $(this.renderer.domElement).on('click', this.onSceneClick);\n\
+  //$(this.renderer.domElement).on('click', this.onSceneClick);\n\
 \n\
   this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);\n\
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
@@ -852,6 +853,7 @@ p.initEvents = function(){\n\
   this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);\n\
 \n\
   this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);\n\
+  this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);\n\
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);\n\
 \n\
   this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
@@ -860,6 +862,7 @@ p.initEvents = function(){\n\
   this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
 \n\
   this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
+  this.renderer.domElement.addEventListener( 'touchend', this.onDocumentTouchEnd, false );\n\
   this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
@@ -868,6 +871,7 @@ p.onDocumentMouseDown = function( event ) {\n\
   event.preventDefault();\n\
 \n\
   this.isUserInteracting = true;\n\
+  this.isUserInteractingTime = Date.now();\n\
 \n\
   this.onPointerDownPointerX = event.clientX;\n\
   this.onPointerDownPointerY = event.clientY;\n\
@@ -884,14 +888,17 @@ p.onDocumentMouseMove = function( event ) {\n\
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;\n\
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
 \n\
-    this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
-    this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
-\n\
   }\n\
+\n\
+  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
+  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
 }\n\
 \n\
 p.onDocumentMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
+  if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
+    this.onSceneClick(event);\n\
+  }\n\
 \n\
 }\n\
 \n\
@@ -906,6 +913,9 @@ p.onDocumentTouchStart = function( event ) {\n\
 \n\
     event.preventDefault();\n\
 \n\
+    this.isUserInteractingTime = Date.now();\n\
+    this.isUserInteracting = true;\n\
+\n\
     this.onPointerDownPointerX = event.touches[ 0 ].pageX;\n\
     this.onPointerDownPointerY = event.touches[ 0 ].pageY;\n\
 \n\
@@ -914,6 +924,13 @@ p.onDocumentTouchStart = function( event ) {\n\
 \n\
   }\n\
 \n\
+}\n\
+\n\
+p.onDocumentTouchEnd = function( event ){\n\
+  this.isUserInteracting = false;\n\
+  if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
+    this.onSceneClick(event);\n\
+  }\n\
 }\n\
 \n\
 p.onDocumentTouchMove = function( event ) {\n\
