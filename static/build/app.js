@@ -1564,6 +1564,8 @@ function pegmanTalk( msg, timeout ){\n\
 \n\
 function onStartDragPegman(){\n\
 \n\
+  streetViewLayer.setMap(map);\n\
+\n\
   $dragHideLayers.fadeOut()\n\
   $pegman.addClass('dragging');\n\
 \n\

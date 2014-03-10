@@ -115,6 +115,8 @@ function pegmanTalk( msg, timeout ){
 
 function onStartDragPegman(){
 
+  streetViewLayer.setMap(map);
+
   $dragHideLayers.fadeOut()
   $pegman.addClass('dragging');
 
