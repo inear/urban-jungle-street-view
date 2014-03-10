@@ -1345,8 +1345,21 @@ var mouse2d = new google.maps.Point();\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
+var $map = $('#map');\n\
+var $intro = $('.js-intro');\n\
 var $introContent = $('.js-intro-content');\n\
 var $loadingLabel = $('.js-loading-label');\n\
+\n\
+$('#backToMap').on('click', function(){\n\
+\n\
+  pano.fadeOut( function(){\n\
+    $map.fadeIn();\n\
+    $intro.fadeIn();\n\
+  });\n\
+\n\
+  TweenLite.set($pegman, {x:0,y:0});\n\
+\n\
+})\n\
 \n\
 $('#choice-default-1').on('click', function(){\n\
   var to = new google.maps.LatLng(40.759101,-73.984406)\n\
@@ -1426,15 +1439,15 @@ function onEndDragPegman( event ){\n\
   var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));\n\
 \n\
 \n\
-  //$loadingLabel.find('h1').html(description)\n\
+  $loadingLabel.find('h1').html(\"loading\");\n\
 \n\
   $loadingLabel.removeClass('inactive');\n\
   TweenMax.to($loadingLabel,1,{opacity:1});\n\
 \n\
   _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
 \n\
-  $(\"#map\").fadeOut();\n\
-  $('.js-intro').fadeOut();\n\
+  $map.fadeOut();\n\
+  $intro.fadeOut();\n\
 \n\
   //_panoLoader.load();\n\
   //addMarker( new google.maps.LatLng(lat,lng) );\n\
@@ -1496,7 +1509,7 @@ function geoSuccess( position ) {\n\
 }\n\
 \n\
 function geoError( message ) {\n\
-  showError( message );\n\
+  //showError( message );\n\
 }\n\
 \n\
 var marker;\n\
@@ -1568,7 +1581,7 @@ var myOptions = {\n\
   mapTypeId: google.maps.MapTypeId.ROADMAP,\n\
   tilt:45,\n\
   disableDefaultUI:true,\n\
-  streetViewControl: true,\n\
+  streetViewControl: false,\n\
   styles: styleArray\n\
 }\n\
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );\n\

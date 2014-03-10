@@ -337,3 +337,18 @@ html,body {
   font-weight: 600;
   letter-spacing: -0.6px;
 }
+
+.back-btn {
+  position: absolute;
+
+  font-family: 'Source Sans Pro', sans-serif;
+  font-weight: 400;
+  display:inline-block;
+
+  border: 1px solid white;
+  padding:10px;
+  cursor: pointer;
+
+  margin: 20px;
+  color: #ffffff;
+}

@@ -14,8 +14,21 @@ var mouse2d = new google.maps.Point();
 var depthCanvas;
 var normalCanvas;
 
+var $map = $('#map');
+var $intro = $('.js-intro');
 var $introContent = $('.js-intro-content');
 var $loadingLabel = $('.js-loading-label');
+
+$('#backToMap').on('click', function(){
+
+  pano.fadeOut( function(){
+    $map.fadeIn();
+    $intro.fadeIn();
+  });
+
+  TweenLite.set($pegman, {x:0,y:0});
+
+})
 
 $('#choice-default-1').on('click', function(){
   var to = new google.maps.LatLng(40.759101,-73.984406)
@@ -95,15 +108,15 @@ function onEndDragPegman( event ){
   var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));
 
 
-  //$loadingLabel.find('h1').html(description)
+  $loadingLabel.find('h1').html("loading");
 
   $loadingLabel.removeClass('inactive');
   TweenMax.to($loadingLabel,1,{opacity:1});
 
   _panoLoader.load(new google.maps.LatLng(lat,lng));
 
-  $("#map").fadeOut();
-  $('.js-intro').fadeOut();
+  $map.fadeOut();
+  $intro.fadeOut();
 
   //_panoLoader.load();
   //addMarker( new google.maps.LatLng(lat,lng) );
@@ -165,7 +178,7 @@ function geoSuccess( position ) {
 }
 
 function geoError( message ) {
-  showError( message );
+  //showError( message );
 }
 
 var marker;
@@ -237,7 +250,7 @@ var myOptions = {
   mapTypeId: google.maps.MapTypeId.ROADMAP,
   tilt:45,
   disableDefaultUI:true,
-  streetViewControl: true,
+  streetViewControl: false,
   styles: styleArray
 }
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );
