@@ -21,9 +21,14 @@ var $loadingLabel = $('.js-loading-label');
 
 $('#backToMap').on('click', function(){
 
+  pegmanTalk('Choose your location and<br>pick me up!');
+
   pano.fadeOut( function(){
     $map.fadeIn();
     $intro.fadeIn();
+    $dragHideLayers.fadeIn();
+    $pegman.removeClass('dragging');
+
   });
 
   TweenLite.set($pegman, {x:0,y:0});
@@ -80,17 +85,21 @@ Draggable.create($pegman, {
   onDragEnd:onEndDragPegman
 });
 
+function pegmanTalk( msg ){
+  $('.js-message').html(msg);
+}
+
 function onStartDragPegman(){
 
   $dragHideLayers.fadeOut()
   $pegman.addClass('dragging');
+
+  pegmanTalk('Now drop me somewhere');
 }
 
 function onEndDragPegman( event ){
 
   streetViewLayer.setMap();
-  $dragHideLayers.fadeIn();
-  $pegman.removeClass('dragging');
 
   var offset = $pegman.offset(),
 
@@ -115,8 +124,12 @@ function onEndDragPegman( event ){
 
   _panoLoader.load(new google.maps.LatLng(lat,lng));
 
-  $map.fadeOut();
-  $intro.fadeOut();
+  pegmanTalk('I hope there will be no snakes');
+
+  setTimeout(function(){
+    $map.fadeOut();
+    $intro.fadeOut();
+  },2000);
 
   //_panoLoader.load();
   //addMarker( new google.maps.LatLng(lat,lng) );
@@ -173,12 +186,12 @@ function geoSuccess( position ) {
 
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
   map.panTo( currentLocation );
-  addMarker( currentLocation ); // move to position (thanks @theCole!)
+  //addMarker( currentLocation ); // move to position (thanks @theCole!)
 
 }
 
 function geoError( message ) {
-  //showError( message );
+  showError( message );
 }
 
 var marker;

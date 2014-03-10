@@ -295,7 +295,11 @@ html,body {
   &.dragging {
 
     .instructions {
-      display:none;
+      @include transition-property(all);
+      @include transition-duration(0.2s);
+      @include transition-timing-function(ease-in);
+      @include transform(scale(0.8) translateX(-40px));
+      width:200px;
     }
 
     .pegman-circle {
@@ -340,6 +344,7 @@ html,body {
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: -0.6px;
+  text-align:center;
 }
 
 .back-btn {

@@ -1352,9 +1352,14 @@ var $loadingLabel = $('.js-loading-label');\n\
 \n\
 $('#backToMap').on('click', function(){\n\
 \n\
+  pegmanTalk('Choose your location and<br>pick me up!');\n\
+\n\
   pano.fadeOut( function(){\n\
     $map.fadeIn();\n\
     $intro.fadeIn();\n\
+    $dragHideLayers.fadeIn();\n\
+    $pegman.removeClass('dragging');\n\
+\n\
   });\n\
 \n\
   TweenLite.set($pegman, {x:0,y:0});\n\
@@ -1411,17 +1416,21 @@ Draggable.create($pegman, {\n\
   onDragEnd:onEndDragPegman\n\
 });\n\
 \n\
+function pegmanTalk( msg ){\n\
+  $('.js-message').html(msg);\n\
+}\n\
+\n\
 function onStartDragPegman(){\n\
 \n\
   $dragHideLayers.fadeOut()\n\
   $pegman.addClass('dragging');\n\
+\n\
+  pegmanTalk('Now drop me somewhere');\n\
 }\n\
 \n\
 function onEndDragPegman( event ){\n\
 \n\
   streetViewLayer.setMap();\n\
-  $dragHideLayers.fadeIn();\n\
-  $pegman.removeClass('dragging');\n\
 \n\
   var offset = $pegman.offset(),\n\
 \n\
@@ -1446,8 +1455,12 @@ function onEndDragPegman( event ){\n\
 \n\
   _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
 \n\
-  $map.fadeOut();\n\
-  $intro.fadeOut();\n\
+  pegmanTalk('I hope there will be no snakes');\n\
+\n\
+  setTimeout(function(){\n\
+    $map.fadeOut();\n\
+    $intro.fadeOut();\n\
+  },2000);\n\
 \n\
   //_panoLoader.load();\n\
   //addMarker( new google.maps.LatLng(lat,lng) );\n\
@@ -1504,12 +1517,12 @@ function geoSuccess( position ) {\n\
 \n\
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
   map.panTo( currentLocation );\n\
-  addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
+  //addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
 \n\
 }\n\
 \n\
 function geoError( message ) {\n\
-  //showError( message );\n\
+  showError( message );\n\
 }\n\
 \n\
 var marker;\n\
