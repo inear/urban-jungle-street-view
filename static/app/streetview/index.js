@@ -44,7 +44,6 @@ function PanoView(){
 
   this.render = this.render.bind(this);
   this.onSceneClick = this.onSceneClick.bind(this);
-  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
 
   this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );
 
@@ -90,7 +89,7 @@ function PanoView(){
   this.grassBillboardGeo = new THREE.PlaneGeometry(4,4,1,1);
 
   this.init3D();
-  this.initEvents();
+
 }
 
 var p = PanoView.prototype;
@@ -120,6 +119,7 @@ p.generateNature = function(){
 }
 
 p.start = function() {
+  this.initEvents();
   this.isIntro = false;
   this.fadeIn();
 }
@@ -350,18 +350,18 @@ p.initEvents = function(){
   this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
   this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);
-  //this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);
+  this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);
 
   this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);
 
-  document.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
-  document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
-  document.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
-  //document.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
+  this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
+  this.renderer.domElement.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
+  this.renderer.domElement.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
+  this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
 
-  document.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
-  document.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
+  this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
+  this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
 }
 
 p.onDocumentMouseDown = function( event ) {
@@ -384,7 +384,6 @@ p.onDocumentMouseMove = function( event ) {
 
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
-    this.render();
 
     this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -394,15 +393,12 @@ p.onDocumentMouseMove = function( event ) {
 
 p.onDocumentMouseUp = function( event ) {
   this.isUserInteracting = false;
-  this.render();
 
 }
 
 p.onDocumentMouseWheel = function( event ) {
   this.camera.fov -= event.wheelDeltaY * 0.05;
   this.camera.updateProjectionMatrix();
-  this.render();
-
 }
 
 p.onDocumentTouchStart = function( event ) {

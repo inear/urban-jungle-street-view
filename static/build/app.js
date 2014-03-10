@@ -543,7 +543,6 @@ function PanoView(){\n\
 \n\
   this.render = this.render.bind(this);\n\
   this.onSceneClick = this.onSceneClick.bind(this);\n\
-  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
 \n\
   this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1100 );\n\
 \n\
@@ -589,7 +588,7 @@ function PanoView(){\n\
   this.grassBillboardGeo = new THREE.PlaneGeometry(4,4,1,1);\n\
 \n\
   this.init3D();\n\
-  this.initEvents();\n\
+\n\
 }\n\
 \n\
 var p = PanoView.prototype;\n\
@@ -619,6 +618,7 @@ p.generateNature = function(){\n\
 }\n\
 \n\
 p.start = function() {\n\
+  this.initEvents();\n\
   this.isIntro = false;\n\
   this.fadeIn();\n\
 }\n\
@@ -849,18 +849,18 @@ p.initEvents = function(){\n\
   this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);\n\
   this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
   this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);\n\
-  //this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);\n\
+  this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);\n\
 \n\
   this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);\n\
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);\n\
 \n\
-  document.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
-  document.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
-  document.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
-  //document.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
+  this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
+  this.renderer.domElement.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
+  this.renderer.domElement.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
+  this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
 \n\
-  document.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
-  document.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
+  this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
+  this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
 p.onDocumentMouseDown = function( event ) {\n\
@@ -883,7 +883,6 @@ p.onDocumentMouseMove = function( event ) {\n\
 \n\
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;\n\
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
-    this.render();\n\
 \n\
     this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
     this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
@@ -893,15 +892,12 @@ p.onDocumentMouseMove = function( event ) {\n\
 \n\
 p.onDocumentMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
-  this.render();\n\
 \n\
 }\n\
 \n\
 p.onDocumentMouseWheel = function( event ) {\n\
   this.camera.fov -= event.wheelDeltaY * 0.05;\n\
   this.camera.updateProjectionMatrix();\n\
-  this.render();\n\
-\n\
 }\n\
 \n\
 p.onDocumentTouchStart = function( event ) {\n\
