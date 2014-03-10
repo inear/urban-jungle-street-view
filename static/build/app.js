@@ -1345,7 +1345,7 @@ var pegmanTimeout;\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
-var TALK_DEFAULT = 'Choose your location and<br>pick me up!';\n\
+var TALK_DEFAULT = 'Choose your location below<br>and pick me up!';\n\
 \n\
 var $map = $('#map');\n\
 var $intro = $('.js-intro');\n\
@@ -1380,10 +1380,18 @@ $('#choice-default-1').on('click', function(){\n\
 })\n\
 \n\
 $('#choice-default-2').on('click', function(){\n\
-  var to = new google.maps.LatLng(22.300546,114.17276)\n\
+  var to = new google.maps.LatLng(37.7914908,-122.3977816)\n\
   _panoLoader.load(to);\n\
   map.panTo( to );\n\
 })\n\
+\n\
+\n\
+$('#choice-default-3').on('click', function(){\n\
+  var to = new google.maps.LatLng(59.3346806,18.0621834)\n\
+  _panoLoader.load(to);\n\
+  map.panTo( to );\n\
+})\n\
+\n\
 \n\
 $('#choice-location').on('click', function(){\n\
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );\n\

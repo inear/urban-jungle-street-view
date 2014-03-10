@@ -14,7 +14,7 @@ var pegmanTimeout;
 var depthCanvas;
 var normalCanvas;
 
-var TALK_DEFAULT = 'Choose your location and<br>pick me up!';
+var TALK_DEFAULT = 'Choose your location below<br>and pick me up!';
 
 var $map = $('#map');
 var $intro = $('.js-intro');
@@ -49,10 +49,18 @@ $('#choice-default-1').on('click', function(){
 })
 
 $('#choice-default-2').on('click', function(){
-  var to = new google.maps.LatLng(22.300546,114.17276)
+  var to = new google.maps.LatLng(37.7914908,-122.3977816)
   _panoLoader.load(to);
   map.panTo( to );
 })
+
+
+$('#choice-default-3').on('click', function(){
+  var to = new google.maps.LatLng(59.3346806,18.0621834)
+  _panoLoader.load(to);
+  map.panTo( to );
+})
+
 
 $('#choice-location').on('click', function(){
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
