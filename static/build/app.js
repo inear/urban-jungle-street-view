@@ -1340,6 +1340,8 @@ var _depthLoader = new GSVPANO.PanoDepthLoader();\n\
 var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);\n\
 var currentPanoLocation = null;\n\
 \n\
+var mouse2d = new google.maps.Point();\n\
+\n\
 var depthCanvas;\n\
 var normalCanvas;\n\
 \n\
@@ -1350,6 +1352,7 @@ $('#choice-default-1').on('click', function(){\n\
   var to = new google.maps.LatLng(40.759101,-73.984406)\n\
   _panoLoader.load(to);\n\
   map.panTo( to );\n\
+\n\
   //addMarker( currentLocation );\n\
 })\n\
 \n\
@@ -1367,7 +1370,7 @@ $('.js-intro').removeClass('inactive');\n\
 \n\
 var pano = new Pano();\n\
 \n\
-$('.js-start-btn').on('click touchstart', function(){\n\
+$('.js-start-btn').on('click', function(){\n\
   $('.js-intro').fadeOut();\n\
   pano.start();\n\
 });\n\
@@ -1383,7 +1386,65 @@ pano.on('panoLinkClicked', function(id,description){\n\
   });\n\
 })\n\
 \n\
-Draggable.create(\"#pegman\", {type:\"x,y\", edgeResistance:0.5, throwProps:true, bounds:window});\n\
+var $pegman = $('#pegman');\n\
+var $pegmanCircle = $('.js-pegman-circle');\n\
+\n\
+Draggable.create($pegman, {\n\
+  type:\"x,y\",\n\
+  edgeResistance:0.5,\n\
+  throwProps:true,\n\
+  bounds:window,\n\
+  onDragStart:onStartDragPegman,\n\
+  onDragEnd:onEndDragPegman\n\
+});\n\
+\n\
+function onStartDragPegman(){\n\
+\n\
+  $dragHideLayers.fadeOut()\n\
+  $pegman.addClass('dragging');\n\
+}\n\
+\n\
+function onEndDragPegman( event ){\n\
+\n\
+  streetViewLayer.setMap();\n\
+  $dragHideLayers.fadeIn();\n\
+  $pegman.removeClass('dragging');\n\
+\n\
+  var offset = $pegman.offset(),\n\
+\n\
+  bounds = map.getBounds(),\n\
+  neLatlng = bounds.getNorthEast(),\n\
+  swLatlng = bounds.getSouthWest(),\n\
+  startLat = neLatlng.lat(),\n\
+  endLng = neLatlng.lng(),\n\
+  endLat = swLatlng.lat(),\n\
+  startLng = swLatlng.lng(),\n\
+  x = offset.left + 45,\n\
+  y = offset.top + 60\n\
+\n\
+  var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))\n\
+  var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));\n\
+\n\
+\n\
+  //$loadingLabel.find('h1').html(description)\n\
+\n\
+  $loadingLabel.removeClass('inactive');\n\
+  TweenMax.to($loadingLabel,1,{opacity:1});\n\
+\n\
+  _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
+\n\
+  $(\"#map\").fadeOut();\n\
+  $('.js-intro').fadeOut();\n\
+\n\
+  //_panoLoader.load();\n\
+  //addMarker( new google.maps.LatLng(lat,lng) );\n\
+\n\
+\n\
+}\n\
+\n\
+\n\
+var $dragHideLayers = $('.js-drag-hide');\n\
+\n\
 /*\n\
 \n\
 var el = document.getElementById( 'myLocationButton' );\n\
@@ -1512,9 +1573,34 @@ var myOptions = {\n\
 }\n\
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );\n\
 \n\
-google.maps.event.addListener(map, 'click', function(event) {\n\
-  addMarker(event.latLng);\n\
+var streetViewLayer = new google.maps.StreetViewCoverageLayer();\n\
+\n\
+google.maps.event.addListener(map, 'mousemove', function(event) {\n\
+\n\
+/*\n\
+  var TILE_SIZE = 256;\n\
+  var proj = map.getProjection();\n\
+  var numTiles = 1 << map.getZoom();\n\
+  var worldCoordinate = proj.fromLatLngToPoint(event.latLng);\n\
+\n\
+  var pixelCoordinate = new google.maps.Point(\n\
+          worldCoordinate.x * numTiles,\n\
+          worldCoordinate.y * numTiles);\n\
+\n\
+  var tileCoordinate = new google.maps.Point(\n\
+      Math.floor(pixelCoordinate.x / TILE_SIZE),\n\
+      Math.floor(pixelCoordinate.y / TILE_SIZE));\n\
+\n\
+  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);\n\
+  //console.log(event.pixel.x + ', ' + event.pixel.y);\n\
+\n\
+  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);\n\
+*/\n\
 });\n\
+\n\
+/*google.maps.event.addListener(map, 'click', function(event) {\n\
+  addMarker(event.latLng);\n\
+});*/\n\
 \n\
 var geocoder = new google.maps.Geocoder();\n\
 \n\
@@ -1523,19 +1609,6 @@ el.addEventListener( 'click', function( event ) {\n\
   event.preventDefault();\n\
   findAddress( document.getElementById(\"address\").value );\n\
 }, false );\n\
-\n\
-var streetViewLayer = new google.maps.StreetViewCoverageLayer();\n\
-\n\
-$(\"body\").on('mousedown', function(){\n\
-  streetViewLayer.setMap(map);\n\
-})\n\
-\n\
-$(\"body\").on('mouseup', function(){\n\
-  streetViewLayer.setMap();\n\
-})\n\
-\n\
-\n\
-\n\
 \n\
 \n\
 document.getElementById(\"address\").focus();\n\
@@ -1564,7 +1637,7 @@ function addMarker(location) {\n\
     map: map\n\
   });\n\
   marker.setMap( map );\n\
-  _panoLoader.load( location );\n\
+  //_panoLoader.load( location );\n\
 }\n\
 \n\
 //this.onResize = this.onResize.bind(this);\n\
@@ -1659,6 +1732,7 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
   pano.setNormalMap(normalCanvas);\n\
 \n\
   pano.generateNature();\n\
+  pano.start();\n\
 \n\
   if( !pano.isIntro ) {\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\
@@ -1687,7 +1761,7 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
   var w = window.innerWidth,\n\
     h = window.innerHeight;\n\
 \n\
-    TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });\n\
+    //TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });\n\
 \n\
     pano.onResize(w,h);\n\
 \n\

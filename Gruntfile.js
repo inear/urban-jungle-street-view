@@ -17,7 +17,7 @@ function server() {
     response.sendfile(path.join(__dirname, 'static/index.html'));
   });
 
-  app.listen(5000);
+  app.listen(5010);
 }
 
 module.exports = function(grunt) {
@@ -210,7 +210,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('dev', function(opt) {
     if (opt === 'server') {
-      grunt.log.ok('Start server: http://localhost:5000');
+      grunt.log.ok('Start server: http://localhost:5010');
       server();
     }
 

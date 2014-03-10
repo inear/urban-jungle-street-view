@@ -9,6 +9,8 @@ var _depthLoader = new GSVPANO.PanoDepthLoader();
 var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);
 var currentPanoLocation = null;
 
+var mouse2d = new google.maps.Point();
+
 var depthCanvas;
 var normalCanvas;
 
@@ -19,6 +21,7 @@ $('#choice-default-1').on('click', function(){
   var to = new google.maps.LatLng(40.759101,-73.984406)
   _panoLoader.load(to);
   map.panTo( to );
+
   //addMarker( currentLocation );
 })
 
@@ -36,7 +39,7 @@ $('.js-intro').removeClass('inactive');
 
 var pano = new Pano();
 
-$('.js-start-btn').on('click touchstart', function(){
+$('.js-start-btn').on('click', function(){
   $('.js-intro').fadeOut();
   pano.start();
 });
@@ -52,7 +55,65 @@ pano.on('panoLinkClicked', function(id,description){
   });
 })
 
-Draggable.create("#pegman", {type:"x,y", edgeResistance:0.5, throwProps:true, bounds:window});
+var $pegman = $('#pegman');
+var $pegmanCircle = $('.js-pegman-circle');
+
+Draggable.create($pegman, {
+  type:"x,y",
+  edgeResistance:0.5,
+  throwProps:true,
+  bounds:window,
+  onDragStart:onStartDragPegman,
+  onDragEnd:onEndDragPegman
+});
+
+function onStartDragPegman(){
+
+  $dragHideLayers.fadeOut()
+  $pegman.addClass('dragging');
+}
+
+function onEndDragPegman( event ){
+
+  streetViewLayer.setMap();
+  $dragHideLayers.fadeIn();
+  $pegman.removeClass('dragging');
+
+  var offset = $pegman.offset(),
+
+  bounds = map.getBounds(),
+  neLatlng = bounds.getNorthEast(),
+  swLatlng = bounds.getSouthWest(),
+  startLat = neLatlng.lat(),
+  endLng = neLatlng.lng(),
+  endLat = swLatlng.lat(),
+  startLng = swLatlng.lng(),
+  x = offset.left + 45,
+  y = offset.top + 60
+
+  var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))
+  var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));
+
+
+  //$loadingLabel.find('h1').html(description)
+
+  $loadingLabel.removeClass('inactive');
+  TweenMax.to($loadingLabel,1,{opacity:1});
+
+  _panoLoader.load(new google.maps.LatLng(lat,lng));
+
+  $("#map").fadeOut();
+  $('.js-intro').fadeOut();
+
+  //_panoLoader.load();
+  //addMarker( new google.maps.LatLng(lat,lng) );
+
+
+}
+
+
+var $dragHideLayers = $('.js-drag-hide');
+
 /*
 
 var el = document.getElementById( 'myLocationButton' );
@@ -181,9 +242,34 @@ var myOptions = {
 }
 var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );
 
-google.maps.event.addListener(map, 'click', function(event) {
-  addMarker(event.latLng);
+var streetViewLayer = new google.maps.StreetViewCoverageLayer();
+
+google.maps.event.addListener(map, 'mousemove', function(event) {
+
+/*
+  var TILE_SIZE = 256;
+  var proj = map.getProjection();
+  var numTiles = 1 << map.getZoom();
+  var worldCoordinate = proj.fromLatLngToPoint(event.latLng);
+
+  var pixelCoordinate = new google.maps.Point(
+          worldCoordinate.x * numTiles,
+          worldCoordinate.y * numTiles);
+
+  var tileCoordinate = new google.maps.Point(
+      Math.floor(pixelCoordinate.x / TILE_SIZE),
+      Math.floor(pixelCoordinate.y / TILE_SIZE));
+
+  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);
+  //console.log(event.pixel.x + ', ' + event.pixel.y);
+
+  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);
+*/
 });
+
+/*google.maps.event.addListener(map, 'click', function(event) {
+  addMarker(event.latLng);
+});*/
 
 var geocoder = new google.maps.Geocoder();
 
@@ -192,19 +278,6 @@ el.addEventListener( 'click', function( event ) {
   event.preventDefault();
   findAddress( document.getElementById("address").value );
 }, false );
-
-var streetViewLayer = new google.maps.StreetViewCoverageLayer();
-
-$("body").on('mousedown', function(){
-  streetViewLayer.setMap(map);
-})
-
-$("body").on('mouseup', function(){
-  streetViewLayer.setMap();
-})
-
-
-
 
 
 document.getElementById("address").focus();
@@ -233,7 +306,7 @@ function addMarker(location) {
     map: map
   });
   marker.setMap( map );
-  _panoLoader.load( location );
+  //_panoLoader.load( location );
 }
 
 //this.onResize = this.onResize.bind(this);
@@ -328,6 +401,7 @@ _depthLoader.onDepthLoad = function( buffers ) {
   pano.setNormalMap(normalCanvas);
 
   pano.generateNature();
+  pano.start();
 
   if( !pano.isIntro ) {
     TweenMax.to($loadingLabel,1,{opacity:0});
@@ -356,7 +430,7 @@ _depthLoader.onDepthLoad = function( buffers ) {
   var w = window.innerWidth,
     h = window.innerHeight;
 
-    TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });
+    //TweenMax.set($introContent,{y: h*.5 - $introContent.height()*.5 });
 
     pano.onResize(w,h);
 
