@@ -1591,20 +1591,9 @@ function onEndDragPegman( event ){\n\
   var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))\n\
   var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));\n\
 \n\
-\n\
-  $loadingLabel.find('h1').html(\"loading\");\n\
-\n\
-  $loadingLabel.removeClass('inactive');\n\
-  TweenMax.to($loadingLabel,1,{opacity:1});\n\
-\n\
-  _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
-\n\
   pegmanTalk('I hope there will be no snakes');\n\
 \n\
-  setTimeout(function(){\n\
-    $map.fadeOut();\n\
-    $intro.fadeOut();\n\
-  },2000);\n\
+  _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
 \n\
   //_panoLoader.load();\n\
   //addMarker( new google.maps.LatLng(lat,lng) );\n\
@@ -1833,6 +1822,14 @@ _panoLoader.onPanoramaLoad = function() {\n\
 \n\
 };\n\
 \n\
+_depthLoader.onDepthError = function() {\n\
+  pegmanTalk(\"Snakes! Can't go there. Try another spot\",4);\n\
+\n\
+  $dragHideLayers.fadeIn();\n\
+  $pegman.removeClass('dragging');\n\
+  TweenLite.set($pegman, {x:0,y:0});\n\
+\n\
+}\n\
 \n\
 _depthLoader.onDepthLoad = function( buffers ) {\n\
   var x, y, context, image, w, h, c,pointer;\n\
@@ -1908,7 +1905,19 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\
   }\n\
 \n\
+  $loadingLabel.find('h1').html(\"loading\");\n\
+  $loadingLabel.removeClass('inactive');\n\
+  TweenMax.to($loadingLabel,1,{opacity:1});\n\
+\n\
+  setTimeout(function(){\n\
+    $map.fadeOut();\n\
+    $intro.fadeOut();\n\
+    TweenMax.to($loadingLabel,1,{opacity:0});\n\
+  },2000);\n\
+\n\
   pano.setLinks(self.links, self.centerHeading );\n\
+\n\
+\n\
 \n\
 }\n\
 \n\

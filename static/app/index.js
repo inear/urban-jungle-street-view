@@ -142,20 +142,9 @@ function onEndDragPegman( event ){
   var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))
   var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));
 
-
-  $loadingLabel.find('h1').html("loading");
-
-  $loadingLabel.removeClass('inactive');
-  TweenMax.to($loadingLabel,1,{opacity:1});
-
-  _panoLoader.load(new google.maps.LatLng(lat,lng));
-
   pegmanTalk('I hope there will be no snakes');
 
-  setTimeout(function(){
-    $map.fadeOut();
-    $intro.fadeOut();
-  },2000);
+  _panoLoader.load(new google.maps.LatLng(lat,lng));
 
   //_panoLoader.load();
   //addMarker( new google.maps.LatLng(lat,lng) );
@@ -384,6 +373,14 @@ _panoLoader.onPanoramaLoad = function() {
 
 };
 
+_depthLoader.onDepthError = function() {
+  pegmanTalk("Snakes! Can't go there. Try another spot",4);
+
+  $dragHideLayers.fadeIn();
+  $pegman.removeClass('dragging');
+  TweenLite.set($pegman, {x:0,y:0});
+
+}
 
 _depthLoader.onDepthLoad = function( buffers ) {
   var x, y, context, image, w, h, c,pointer;
@@ -459,7 +456,19 @@ _depthLoader.onDepthLoad = function( buffers ) {
     TweenMax.to($loadingLabel,1,{opacity:0});
   }
 
+  $loadingLabel.find('h1').html("loading");
+  $loadingLabel.removeClass('inactive');
+  TweenMax.to($loadingLabel,1,{opacity:1});
+
+  setTimeout(function(){
+    $map.fadeOut();
+    $intro.fadeOut();
+    TweenMax.to($loadingLabel,1,{opacity:0});
+  },2000);
+
   pano.setLinks(self.links, self.centerHeading );
+
+
 
 }
 

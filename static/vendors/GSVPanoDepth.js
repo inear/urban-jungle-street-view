@@ -24,7 +24,11 @@ GSVPANO.PanoDepthLoader = function(parameters) {
           buffers = self.parse(decoded);
         } catch (e) {
           console.error("Error loading depth map for pano " + panoId + "\n" + e.message + "\nAt " + e.filename + "(" + e.lineNumber + ")");
-          buffers = self.createEmptyDepthMap();
+          //buffers = self.createEmptyDepthMap();
+          if (self.onDepthError) {
+            self.onDepthError();
+            return;
+          }
         }
 
         self.buffers = buffers;
@@ -35,11 +39,17 @@ GSVPANO.PanoDepthLoader = function(parameters) {
       })
       .fail(function(xhr, textStatus, errorThrown) {
         console.error("Request failed: " + url + "\n" + textStatus + "\n" + errorThrown);
-        var buffers = self.createEmptyDepthMap();
+        /*var buffers = self.createEmptyDepthMap();
         if (self.onDepthLoad) {
           self.buffers = buffers;
           self.onDepthLoad(buffers);
+        }*/
+
+        if (self.onDepthError) {
+          self.onDepthError();
+          return;
         }
+
       })
   }
 
