@@ -230,6 +230,10 @@ html,body {
     &.choice-item--input {
       border-right:none;
     }
+
+    &:hover {
+      background:rgba(255,255,255,0.1);
+    }
   }
 }
 
@@ -351,4 +355,9 @@ html,body {
 
   margin: 20px;
   color: #ffffff;
+
+  &:hover {
+    background:rgba(255,255,255,0.1);
+  }
+
 }
