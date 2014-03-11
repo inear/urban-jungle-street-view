@@ -388,7 +388,7 @@ _panoLoader.onPanoramaLoad = function() {
 
   if( currentPanoLocation ) {
     var dist = google.maps.geometry.spherical.computeDistanceBetween(currentPanoLocation, this.panoLocation.latLng);
-    console.log(dist);
+
   }
 
   currentPanoLocation = this.panoLocation.latLng;
@@ -479,15 +479,12 @@ _depthLoader.onDepthLoad = function( buffers ) {
     TweenMax.to($loadingLabel,1,{opacity:0});
   }
 
-  //$loadingLabel.find('h1').html("loading");
   $loadingLabel.removeClass('inactive');
   TweenMax.to($loadingLabel,1,{opacity:1});
 
- // setTimeout(function(){
-    $map.fadeOut();
-    $intro.fadeOut();
-    TweenMax.to($loadingLabel,1,{opacity:0});
-//  },2000);
+  $map.fadeOut();
+  $intro.fadeOut();
+  TweenMax.to($loadingLabel,1,{opacity:0});
 
   pano.setLinks(self.links, self.centerHeading );
 

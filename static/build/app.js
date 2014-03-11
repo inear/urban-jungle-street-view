@@ -918,8 +918,6 @@ p.onDocumentMouseMove = function( event ) {\n\
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;\n\
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
 \n\
-    console.log(this.lon,this.lat)\n\
-\n\
   }\n\
 \n\
   this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
@@ -1355,6 +1353,9 @@ p.render = function(){\n\
   this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );\n\
   this.target.y = 500 * Math.cos( this.phi );\n\
   this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );\n\
+\n\
+  this.target.x += Math.cos(this.time*2)*10;\n\
+  this.target.y += Math.cos(this.time*2)*10;\n\
 \n\
   this.camera.lookAt( this.target );\n\
 \n\
@@ -1874,7 +1875,7 @@ _panoLoader.onPanoramaLoad = function() {\n\
 \n\
   if( currentPanoLocation ) {\n\
     var dist = google.maps.geometry.spherical.computeDistanceBetween(currentPanoLocation, this.panoLocation.latLng);\n\
-    console.log(dist);\n\
+\n\
   }\n\
 \n\
   currentPanoLocation = this.panoLocation.latLng;\n\
@@ -1965,15 +1966,12 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\
   }\n\
 \n\
-  //$loadingLabel.find('h1').html(\"loading\");\n\
   $loadingLabel.removeClass('inactive');\n\
   TweenMax.to($loadingLabel,1,{opacity:1});\n\
 \n\
- // setTimeout(function(){\n\
-    $map.fadeOut();\n\
-    $intro.fadeOut();\n\
-    TweenMax.to($loadingLabel,1,{opacity:0});\n\
-//  },2000);\n\
+  $map.fadeOut();\n\
+  $intro.fadeOut();\n\
+  TweenMax.to($loadingLabel,1,{opacity:0});\n\
 \n\
   pano.setLinks(self.links, self.centerHeading );\n\
 \n\

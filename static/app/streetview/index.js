@@ -419,8 +419,6 @@ p.onDocumentMouseMove = function( event ) {
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
 
-    console.log(this.lon,this.lat)
-
   }
 
   this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -856,6 +854,9 @@ p.render = function(){
   this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );
   this.target.y = 500 * Math.cos( this.phi );
   this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );
+
+  this.target.x += Math.cos(this.time*2)*10;
+  this.target.y += Math.cos(this.time*2)*10;
 
   this.camera.lookAt( this.target );
 
