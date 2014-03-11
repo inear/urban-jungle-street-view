@@ -439,6 +439,8 @@ p.onDocumentMouseUp = function( event ) {
 
 p.onDocumentMouseWheel = function( event ) {
   this.camera.fov -= event.wheelDeltaY * 0.05;
+
+  this.camera.fov = Math.min(80,Math.max(40,this.camera.fov));
   this.camera.updateProjectionMatrix();
 }
 
