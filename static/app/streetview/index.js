@@ -114,17 +114,24 @@ p.generateNature = function(){
 
 p.start = function() {
   console.log("3d start");
-  this.initEvents();
+
   this.isIntro = false;
   this.isRunning = true;
   this.render();
-  this.fadeIn();
+  this.fadeIn( function(){
+    this.initEvents();
+    $('body').addClass('grab');
+  }.bind(this));
+
+
 }
 
 p.transitionOut = function(){
   this.isIntro = true;
   this.isRunning = false;
   this.removeEvents();
+
+  $('body').removeClass('grab');
 
   this.fadeOut( function(){
     this.emit('transitionOutComplete');
@@ -138,7 +145,7 @@ p.fadeIn = function( callback ){
     callback = function(){};
   }
 
-  TweenMax.to(this,2,{fadeAmount:0});
+  TweenMax.to(this,2,{fadeAmount:0, onComplete:callback});
 }
 
 p.fadeOut = function( callback ){
@@ -396,6 +403,8 @@ p.onDocumentMouseDown = function( event ) {
   this.onPointerDownLon = this.lon;
   this.onPointerDownLat = this.lat;
 
+  $('body').removeClass('grab').addClass('grabbing');
+
 }
 
 p.onDocumentMouseMove = function( event ) {
@@ -416,6 +425,8 @@ p.onDocumentMouseUp = function( event ) {
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
     this.onSceneClick(event);
   }
+
+  $('body').removeClass('grabbing').addClass('grab');
 
 }
 

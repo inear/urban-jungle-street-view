@@ -364,8 +364,6 @@ document.getElementById("address").focus();
 
 function findAddress( address ) {
 
-  //showMessage( 'Getting coordinates...' );
-
   geocoder.geocode( { 'address': address}, function(results, status) {
     if (status == google.maps.GeocoderStatus.OK) {
       map.setCenter(results[0].geometry.location);
@@ -402,6 +400,7 @@ _depthLoader.onDepthError = function() {
 
   $dragHideLayers.fadeIn();
   $pegman.removeClass('dragging');
+  $pegman.removeClass('over-road');
   TweenLite.set($pegman, {x:0,y:0});
 
 }
@@ -480,7 +479,7 @@ _depthLoader.onDepthLoad = function( buffers ) {
     TweenMax.to($loadingLabel,1,{opacity:0});
   }
 
-  $loadingLabel.find('h1').html("loading");
+  //$loadingLabel.find('h1').html("loading");
   $loadingLabel.removeClass('inactive');
   TweenMax.to($loadingLabel,1,{opacity:1});
 

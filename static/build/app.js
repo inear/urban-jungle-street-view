@@ -613,17 +613,24 @@ p.generateNature = function(){\n\
 \n\
 p.start = function() {\n\
   console.log(\"3d start\");\n\
-  this.initEvents();\n\
+\n\
   this.isIntro = false;\n\
   this.isRunning = true;\n\
   this.render();\n\
-  this.fadeIn();\n\
+  this.fadeIn( function(){\n\
+    this.initEvents();\n\
+    $('body').addClass('grab');\n\
+  }.bind(this));\n\
+\n\
+\n\
 }\n\
 \n\
 p.transitionOut = function(){\n\
   this.isIntro = true;\n\
   this.isRunning = false;\n\
   this.removeEvents();\n\
+\n\
+  $('body').removeClass('grab');\n\
 \n\
   this.fadeOut( function(){\n\
     this.emit('transitionOutComplete');\n\
@@ -637,7 +644,7 @@ p.fadeIn = function( callback ){\n\
     callback = function(){};\n\
   }\n\
 \n\
-  TweenMax.to(this,2,{fadeAmount:0});\n\
+  TweenMax.to(this,2,{fadeAmount:0, onComplete:callback});\n\
 }\n\
 \n\
 p.fadeOut = function( callback ){\n\
@@ -895,6 +902,8 @@ p.onDocumentMouseDown = function( event ) {\n\
   this.onPointerDownLon = this.lon;\n\
   this.onPointerDownLat = this.lat;\n\
 \n\
+  $('body').removeClass('grab').addClass('grabbing');\n\
+\n\
 }\n\
 \n\
 p.onDocumentMouseMove = function( event ) {\n\
@@ -915,6 +924,8 @@ p.onDocumentMouseUp = function( event ) {\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
     this.onSceneClick(event);\n\
   }\n\
+\n\
+  $('body').removeClass('grabbing').addClass('grab');\n\
 \n\
 }\n\
 \n\
@@ -1832,8 +1843,6 @@ document.getElementById(\"address\").focus();\n\
 \n\
 function findAddress( address ) {\n\
 \n\
-  //showMessage( 'Getting coordinates...' );\n\
-\n\
   geocoder.geocode( { 'address': address}, function(results, status) {\n\
     if (status == google.maps.GeocoderStatus.OK) {\n\
       map.setCenter(results[0].geometry.location);\n\
@@ -1870,6 +1879,7 @@ _depthLoader.onDepthError = function() {\n\
 \n\
   $dragHideLayers.fadeIn();\n\
   $pegman.removeClass('dragging');\n\
+  $pegman.removeClass('over-road');\n\
   TweenLite.set($pegman, {x:0,y:0});\n\
 \n\
 }\n\
@@ -1948,7 +1958,7 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\
   }\n\
 \n\
-  $loadingLabel.find('h1').html(\"loading\");\n\
+  //$loadingLabel.find('h1').html(\"loading\");\n\
   $loadingLabel.removeClass('inactive');\n\
   TweenMax.to($loadingLabel,1,{opacity:1});\n\
 \n\
