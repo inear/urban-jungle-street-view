@@ -115,7 +115,6 @@ p.generateNature = function(){
 p.start = function() {
   console.log("3d start");
 
-  this.isIntro = false;
   this.isRunning = true;
   this.render();
   this.fadeIn( function(){
@@ -145,7 +144,13 @@ p.fadeIn = function( callback ){
     callback = function(){};
   }
 
-  TweenMax.to(this,2,{fadeAmount:0, onComplete:callback});
+  TweenMax.to(this,2,{fadeAmount:0});
+
+  if( this.isIntro ) {
+    this.isIntro = false;
+    TweenMax.fromTo(this,5,{lat:82,lon:88},{delay:1,lat:5, lon: -11, onComplete:callback, ease:Sine.easeInOut});
+  }
+
 }
 
 p.fadeOut = function( callback ){
@@ -413,6 +418,8 @@ p.onDocumentMouseMove = function( event ) {
 
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
+
+    console.log(this.lon,this.lat)
 
   }
 

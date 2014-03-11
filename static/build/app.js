@@ -614,7 +614,6 @@ p.generateNature = function(){\n\
 p.start = function() {\n\
   console.log(\"3d start\");\n\
 \n\
-  this.isIntro = false;\n\
   this.isRunning = true;\n\
   this.render();\n\
   this.fadeIn( function(){\n\
@@ -644,7 +643,13 @@ p.fadeIn = function( callback ){\n\
     callback = function(){};\n\
   }\n\
 \n\
-  TweenMax.to(this,2,{fadeAmount:0, onComplete:callback});\n\
+  TweenMax.to(this,2,{fadeAmount:0});\n\
+\n\
+  if( this.isIntro ) {\n\
+    this.isIntro = false;\n\
+    TweenMax.fromTo(this,5,{lat:82,lon:88},{delay:1,lat:5, lon: -11, onComplete:callback, ease:Sine.easeInOut});\n\
+  }\n\
+\n\
 }\n\
 \n\
 p.fadeOut = function( callback ){\n\
@@ -912,6 +917,8 @@ p.onDocumentMouseMove = function( event ) {\n\
 \n\
     this.lon = ( this.onPointerDownPointerX - event.clientX ) * 0.1 + this.onPointerDownLon;\n\
     this.lat = ( event.clientY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
+\n\
+    console.log(this.lon,this.lat)\n\
 \n\
   }\n\
 \n\
@@ -1962,11 +1969,11 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
   $loadingLabel.removeClass('inactive');\n\
   TweenMax.to($loadingLabel,1,{opacity:1});\n\
 \n\
-  setTimeout(function(){\n\
+ // setTimeout(function(){\n\
     $map.fadeOut();\n\
     $intro.fadeOut();\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\
-  },2000);\n\
+//  },2000);\n\
 \n\
   pano.setLinks(self.links, self.centerHeading );\n\
 \n\

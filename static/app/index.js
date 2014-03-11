@@ -483,11 +483,11 @@ _depthLoader.onDepthLoad = function( buffers ) {
   $loadingLabel.removeClass('inactive');
   TweenMax.to($loadingLabel,1,{opacity:1});
 
-  setTimeout(function(){
+ // setTimeout(function(){
     $map.fadeOut();
     $intro.fadeOut();
     TweenMax.to($loadingLabel,1,{opacity:0});
-  },2000);
+//  },2000);
 
   pano.setLinks(self.links, self.centerHeading );
 
