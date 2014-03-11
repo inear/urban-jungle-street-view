@@ -20,8 +20,11 @@ var isWebGL = function () {
 
 function PanoView(){
 
-  this._stage = $('#app')[0];
-
+  this.container = $('#app')[0];
+  this.winSize = {
+    width:0,
+    height:0
+  }
   this.time = 0;
   this.isIntro = true;
   this.isRunning = false;
@@ -50,7 +53,7 @@ function PanoView(){
 
   this.target = new THREE.Vector3( 0, 0, 0 );
 
-  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this._stage);
+  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this.container);
 
   // initialize object to perform world/screen calculations
   this.projector = new THREE.Projector();
@@ -272,7 +275,7 @@ p.createClimbingFoliages = function(){
 p.init3D = function(){
 
 
-  this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+  this.renderer = new THREE.WebGLRenderer({alpha:false});
   this.renderer.autoClearColor = false;
   this.renderer.setClearColor(0xffffff,1);
   this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -354,7 +357,7 @@ p.init3D = function(){
 
   //this.controller.handleResize();
 
-  $('#app')[0].appendChild( this.renderer.domElement );
+  this.container.appendChild( this.renderer.domElement );
 
 }
 
@@ -374,27 +377,27 @@ p.initEvents = function(){
   this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);
 
-  this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
-  this.renderer.domElement.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
-  this.renderer.domElement.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
-  this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
+  this.container.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
+  this.container.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
+  this.container.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
+  this.container.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
 
-  this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
-  this.renderer.domElement.addEventListener( 'touchend', this.onDocumentTouchEnd, false );
-  this.renderer.domElement.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );
-  this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
+  this.container.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
+  this.container.addEventListener( 'touchend', this.onDocumentTouchEnd, false );
+  this.container.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );
+  this.container.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
 }
 
 p.removeEvents = function(){
-  this.renderer.domElement.removeEventListener( 'mousedown', this.onDocumentMouseDown );
-  this.renderer.domElement.removeEventListener( 'mousemove', this.onDocumentMouseMove );
-  this.renderer.domElement.removeEventListener( 'mouseup', this.onDocumentMouseUp );
-  this.renderer.domElement.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );
+  this.container.removeEventListener( 'mousedown', this.onDocumentMouseDown );
+  this.container.removeEventListener( 'mousemove', this.onDocumentMouseMove );
+  this.container.removeEventListener( 'mouseup', this.onDocumentMouseUp );
+  this.container.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );
 
-  this.renderer.domElement.removeEventListener( 'touchstart', this.onDocumentTouchStart );
-  this.renderer.domElement.removeEventListener( 'touchend', this.onDocumentTouchEnd );
-  this.renderer.domElement.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );
-  this.renderer.domElement.removeEventListener( 'touchmove', this.onDocumentTouchMove );
+  this.container.removeEventListener( 'touchstart', this.onDocumentTouchStart );
+  this.container.removeEventListener( 'touchend', this.onDocumentTouchEnd );
+  this.container.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );
+  this.container.removeEventListener( 'touchmove', this.onDocumentTouchMove );
 }
 
 p.onDocumentMouseDown = function( event ) {
@@ -414,7 +417,12 @@ p.onDocumentMouseDown = function( event ) {
 
 }
 
+var lastTime = 0;
+var delta;
+
 p.onDocumentMouseMove = function( event ) {
+
+  event.preventDefault();
 
   if ( this.isUserInteracting ) {
 
@@ -423,12 +431,17 @@ p.onDocumentMouseMove = function( event ) {
 
   }
 
-  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;
+  this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;
+
+  delta = Date.now()-lastTime
+
+  lastTime = Date.now();
 }
 
 p.onDocumentMouseUp = function( event ) {
   this.isUserInteracting = false;
+
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
     this.onSceneClick(event);
   }
@@ -479,8 +492,8 @@ p.onDocumentTouchMove = function( event ) {
     this.lon = ( this.onPointerDownPointerX - event.touches[0].pageX ) * 0.1 + this.onPointerDownLon;
     this.lat = ( event.touches[0].pageY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;
 
-    this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;
-    this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;
+    this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;
 
   }
 
@@ -488,7 +501,7 @@ p.onDocumentTouchMove = function( event ) {
 
 p.onSceneClick = function(event){
 
-  var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+  var vector = new THREE.Vector3((event.clientX / this.winSize.width) * 2 - 1, -(event.clientY / this.winSize.height) * 2 + 1, 0.5);
   var projector = new THREE.Projector();
   projector.unprojectVector(vector, this.camera);
 
@@ -868,10 +881,10 @@ p.render = function(){
 
   if( this.isRunning) {
 
-    if(this.rafId) {
+    /*if(this.rafId) {
       raf.cancel( this.rafId);
     }
-
+*/
     this.rafId = raf(this.render);
   }
 }
@@ -918,6 +931,9 @@ p.setVisibleShown = function(child){
 p.onResize  = function( w, h) {
 
   var s = 1;
+
+  this.winSize.width = w
+  this.winSize.height = h
 
   this.camera.aspect = w / h;
   this.camera.updateProjectionMatrix();

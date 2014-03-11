@@ -519,8 +519,11 @@ var isWebGL = function () {\n\
 \n\
 function PanoView(){\n\
 \n\
-  this._stage = $('#app')[0];\n\
-\n\
+  this.container = $('#app')[0];\n\
+  this.winSize = {\n\
+    width:0,\n\
+    height:0\n\
+  }\n\
   this.time = 0;\n\
   this.isIntro = true;\n\
   this.isRunning = false;\n\
@@ -549,7 +552,7 @@ function PanoView(){\n\
 \n\
   this.target = new THREE.Vector3( 0, 0, 0 );\n\
 \n\
-  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this._stage);\n\
+  //this.controller = new THREEx.DragPanControls(this.camera)//new THREE.FirstPersonControls(this.camera,this.container);\n\
 \n\
   // initialize object to perform world/screen calculations\n\
   this.projector = new THREE.Projector();\n\
@@ -771,7 +774,7 @@ p.createClimbingFoliages = function(){\n\
 p.init3D = function(){\n\
 \n\
 \n\
-  this.renderer = isWebGL() ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();\n\
+  this.renderer = new THREE.WebGLRenderer({alpha:false});\n\
   this.renderer.autoClearColor = false;\n\
   this.renderer.setClearColor(0xffffff,1);\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
@@ -853,7 +856,7 @@ p.init3D = function(){\n\
 \n\
   //this.controller.handleResize();\n\
 \n\
-  $('#app')[0].appendChild( this.renderer.domElement );\n\
+  this.container.appendChild( this.renderer.domElement );\n\
 \n\
 }\n\
 \n\
@@ -873,27 +876,27 @@ p.initEvents = function(){\n\
   this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);\n\
   this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);\n\
 \n\
-  this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
-  this.renderer.domElement.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
-  this.renderer.domElement.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
-  this.renderer.domElement.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
+  this.container.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
+  this.container.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
+  this.container.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
+  this.container.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
 \n\
-  this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
-  this.renderer.domElement.addEventListener( 'touchend', this.onDocumentTouchEnd, false );\n\
-  this.renderer.domElement.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );\n\
-  this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
+  this.container.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
+  this.container.addEventListener( 'touchend', this.onDocumentTouchEnd, false );\n\
+  this.container.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );\n\
+  this.container.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
 p.removeEvents = function(){\n\
-  this.renderer.domElement.removeEventListener( 'mousedown', this.onDocumentMouseDown );\n\
-  this.renderer.domElement.removeEventListener( 'mousemove', this.onDocumentMouseMove );\n\
-  this.renderer.domElement.removeEventListener( 'mouseup', this.onDocumentMouseUp );\n\
-  this.renderer.domElement.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );\n\
+  this.container.removeEventListener( 'mousedown', this.onDocumentMouseDown );\n\
+  this.container.removeEventListener( 'mousemove', this.onDocumentMouseMove );\n\
+  this.container.removeEventListener( 'mouseup', this.onDocumentMouseUp );\n\
+  this.container.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );\n\
 \n\
-  this.renderer.domElement.removeEventListener( 'touchstart', this.onDocumentTouchStart );\n\
-  this.renderer.domElement.removeEventListener( 'touchend', this.onDocumentTouchEnd );\n\
-  this.renderer.domElement.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );\n\
-  this.renderer.domElement.removeEventListener( 'touchmove', this.onDocumentTouchMove );\n\
+  this.container.removeEventListener( 'touchstart', this.onDocumentTouchStart );\n\
+  this.container.removeEventListener( 'touchend', this.onDocumentTouchEnd );\n\
+  this.container.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );\n\
+  this.container.removeEventListener( 'touchmove', this.onDocumentTouchMove );\n\
 }\n\
 \n\
 p.onDocumentMouseDown = function( event ) {\n\
@@ -913,7 +916,12 @@ p.onDocumentMouseDown = function( event ) {\n\
 \n\
 }\n\
 \n\
+var lastTime = 0;\n\
+var delta;\n\
+\n\
 p.onDocumentMouseMove = function( event ) {\n\
+\n\
+  event.preventDefault();\n\
 \n\
   if ( this.isUserInteracting ) {\n\
 \n\
@@ -922,12 +930,17 @@ p.onDocumentMouseMove = function( event ) {\n\
 \n\
   }\n\
 \n\
-  this.mouse2d.x = ( event.clientX / window.innerWidth ) * 2 - 1;\n\
-  this.mouse2d.y = - ( event.clientY / window.innerHeight ) * 2 + 1;\n\
+  this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;\n\
+  this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;\n\
+\n\
+  delta = Date.now()-lastTime\n\
+\n\
+  lastTime = Date.now();\n\
 }\n\
 \n\
 p.onDocumentMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
+\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
     this.onSceneClick(event);\n\
   }\n\
@@ -978,8 +991,8 @@ p.onDocumentTouchMove = function( event ) {\n\
     this.lon = ( this.onPointerDownPointerX - event.touches[0].pageX ) * 0.1 + this.onPointerDownLon;\n\
     this.lat = ( event.touches[0].pageY - this.onPointerDownPointerY ) * 0.1 + this.onPointerDownLat;\n\
 \n\
-    this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;\n\
-    this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;\n\
+    this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;\n\
+    this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;\n\
 \n\
   }\n\
 \n\
@@ -987,7 +1000,7 @@ p.onDocumentTouchMove = function( event ) {\n\
 \n\
 p.onSceneClick = function(event){\n\
 \n\
-  var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);\n\
+  var vector = new THREE.Vector3((event.clientX / this.winSize.width) * 2 - 1, -(event.clientY / this.winSize.height) * 2 + 1, 0.5);\n\
   var projector = new THREE.Projector();\n\
   projector.unprojectVector(vector, this.camera);\n\
 \n\
@@ -1367,10 +1380,10 @@ p.render = function(){\n\
 \n\
   if( this.isRunning) {\n\
 \n\
-    if(this.rafId) {\n\
+    /*if(this.rafId) {\n\
       raf.cancel( this.rafId);\n\
     }\n\
-\n\
+*/\n\
     this.rafId = raf(this.render);\n\
   }\n\
 }\n\
@@ -1417,6 +1430,9 @@ p.setVisibleShown = function(child){\n\
 p.onResize  = function( w, h) {\n\
 \n\
   var s = 1;\n\
+\n\
+  this.winSize.width = w\n\
+  this.winSize.height = h\n\
 \n\
   this.camera.aspect = w / h;\n\
   this.camera.updateProjectionMatrix();\n\
@@ -1470,7 +1486,7 @@ void main() {\\n\
   //diffuse\\n\
   vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
   float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\\n\
-  vec3 finalDiffuse = diffuseTex0*vec3(0.8,1.0,0.8);\\n\
+  vec3 finalDiffuse = diffuseTex0*vec3(0.8,0.9,0.8);\\n\
 \\n\
 \\n\
   //depth\\n\
