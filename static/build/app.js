@@ -1531,16 +1531,7 @@ $('#backToMap').on('click', function(){\n\
 \n\
   pegmanTalk(TALK_DEFAULT);\n\
 \n\
-  pano.once('transitionOutComplete', function(){\n\
-    $map.fadeIn();\n\
-    $intro.fadeIn();\n\
-    $dragHideLayers.fadeIn();\n\
-    $pegman.removeClass('dragging');\n\
-    $pegman.removeClass('over-road');\n\
-  });\n\
-  pano.transitionOut();\n\
-\n\
-  TweenLite.set($pegman, {x:0,y:0});\n\
+  backToMap();\n\
 \n\
 })\n\
 \n\
@@ -1581,7 +1572,29 @@ pano.on('panoLinkClicked', function(id,description){\n\
   });\n\
 })\n\
 \n\
+function backToMap() {\n\
 \n\
+  if( pano.isRunning ) {\n\
+    pano.once('transitionOutComplete', function(){\n\
+      showMap();\n\
+    });\n\
+    pano.transitionOut();\n\
+\n\
+    TweenLite.set($pegman, {x:0,y:0});\n\
+  }\n\
+  else {\n\
+    showMap();\n\
+  }\n\
+\n\
+  function showMap() {\n\
+    $map.fadeIn();\n\
+    $intro.fadeIn();\n\
+    $dragHideLayers.fadeIn();\n\
+    $pegman.removeClass('dragging');\n\
+    $pegman.removeClass('over-road');\n\
+  }\n\
+\n\
+}\n\
 \n\
 Draggable.create($pegman, {\n\
   type:\"x,y\",\n\
@@ -1882,14 +1895,15 @@ _panoLoader.onPanoramaLoad = function() {\n\
 \n\
 };\n\
 \n\
+_panoLoader.onNoPanoramaData = function(){\n\
+  pegmanTalk(\"Snakes! Can't go there. Try another spot\",4);\n\
+  backToMap();\n\
+}\n\
+\n\
 _depthLoader.onDepthError = function() {\n\
   pegmanTalk(\"Snakes! Can't go there. Try another spot\",4);\n\
 \n\
-  $dragHideLayers.fadeIn();\n\
-  $pegman.removeClass('dragging');\n\
-  $pegman.removeClass('over-road');\n\
-  TweenLite.set($pegman, {x:0,y:0});\n\
-\n\
+  backToMap();\n\
 }\n\
 \n\
 _depthLoader.onDepthLoad = function( buffers ) {\n\

@@ -44,16 +44,7 @@ $('#backToMap').on('click', function(){
 
   pegmanTalk(TALK_DEFAULT);
 
-  pano.once('transitionOutComplete', function(){
-    $map.fadeIn();
-    $intro.fadeIn();
-    $dragHideLayers.fadeIn();
-    $pegman.removeClass('dragging');
-    $pegman.removeClass('over-road');
-  });
-  pano.transitionOut();
-
-  TweenLite.set($pegman, {x:0,y:0});
+  backToMap();
 
 })
 
@@ -94,7 +85,29 @@ pano.on('panoLinkClicked', function(id,description){
   });
 })
 
+function backToMap() {
 
+  if( pano.isRunning ) {
+    pano.once('transitionOutComplete', function(){
+      showMap();
+    });
+    pano.transitionOut();
+
+    TweenLite.set($pegman, {x:0,y:0});
+  }
+  else {
+    showMap();
+  }
+
+  function showMap() {
+    $map.fadeIn();
+    $intro.fadeIn();
+    $dragHideLayers.fadeIn();
+    $pegman.removeClass('dragging');
+    $pegman.removeClass('over-road');
+  }
+
+}
 
 Draggable.create($pegman, {
   type:"x,y",
@@ -395,14 +408,15 @@ _panoLoader.onPanoramaLoad = function() {
 
 };
 
+_panoLoader.onNoPanoramaData = function(){
+  pegmanTalk("Snakes! Can't go there. Try another spot",4);
+  backToMap();
+}
+
 _depthLoader.onDepthError = function() {
   pegmanTalk("Snakes! Can't go there. Try another spot",4);
 
-  $dragHideLayers.fadeIn();
-  $pegman.removeClass('dragging');
-  $pegman.removeClass('over-road');
-  TweenLite.set($pegman, {x:0,y:0});
-
+  backToMap();
 }
 
 _depthLoader.onDepthLoad = function( buffers ) {

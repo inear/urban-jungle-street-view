@@ -92,7 +92,8 @@ module.exports = function(grunt) {
       },
       component: {
         files: [
-          'static/app/**/*.js'
+          'static/app/**/*.js',
+          'static/**/*.glsl'
         ],
         tasks: ['component_build:dev']
       }
