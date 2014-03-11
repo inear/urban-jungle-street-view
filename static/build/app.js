@@ -1466,7 +1466,7 @@ void main() {\\n\
   //diffuse\\n\
   vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
   float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\\n\
-  vec3 finalDiffuse = mix(diffuseTex0,vec3(0.0),grey);\\n\
+  vec3 finalDiffuse = diffuseTex0*vec3(0.8,1.0,0.8);\\n\
 \\n\
 \\n\
   //depth\\n\
@@ -1474,7 +1474,7 @@ void main() {\\n\
 \\n\
   float thres = 1.0-step(0.1,diffuseTex1.b);\\n\
   //vec4(diffuseTex1,1.0);\\n\
-  gl_FragColor = vec4( mix(finalDiffuse,diffuseTex2,0.2),1.0-DiffuseTerm*(1.0-diffuseTex2.x));\\n\
+  gl_FragColor = vec4( finalDiffuse,1.0-DiffuseTerm*(1.0-diffuseTex2.x));\\n\
 \\n\
 \\n\
   //float depth = gl_FragCoord.z / gl_FragCoord.w;\\n\
