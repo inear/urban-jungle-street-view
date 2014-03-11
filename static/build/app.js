@@ -1535,33 +1535,35 @@ $('#backToMap').on('click', function(){\n\
 \n\
 })\n\
 \n\
-$('#choice-default-1').on('click', function(){\n\
+$('#choice-default-1').on('click', function( event ){\n\
+  event.preventDefault();\n\
   var to = new google.maps.LatLng(40.759101,-73.984406)\n\
-  _panoLoader.load(to);\n\
   map.panTo( to );\n\
 })\n\
 \n\
 $('#choice-default-2').on('click', function(){\n\
+  event.preventDefault();\n\
   var to = new google.maps.LatLng(37.7914908,-122.3977816)\n\
-  _panoLoader.load(to);\n\
   map.panTo( to );\n\
 })\n\
 \n\
 \n\
 $('#choice-default-3').on('click', function(){\n\
+  event.preventDefault();\n\
   var to = new google.maps.LatLng(59.3346806,18.0621834)\n\
-  _panoLoader.load(to);\n\
   map.panTo( to );\n\
 })\n\
 \n\
 \n\
 $('#choice-location').on('click', function(){\n\
+  event.preventDefault();\n\
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );\n\
 })\n\
 \n\
 $('.js-intro').removeClass('inactive');\n\
 \n\
 pano.on('panoLinkClicked', function(id,description){\n\
+\n\
   $loadingLabel.find('h1').html(description)\n\
 \n\
   $loadingLabel.removeClass('inactive');\n\

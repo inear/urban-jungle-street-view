@@ -48,33 +48,35 @@ $('#backToMap').on('click', function(){
 
 })
 
-$('#choice-default-1').on('click', function(){
+$('#choice-default-1').on('click', function( event ){
+  event.preventDefault();
   var to = new google.maps.LatLng(40.759101,-73.984406)
-  _panoLoader.load(to);
   map.panTo( to );
 })
 
 $('#choice-default-2').on('click', function(){
+  event.preventDefault();
   var to = new google.maps.LatLng(37.7914908,-122.3977816)
-  _panoLoader.load(to);
   map.panTo( to );
 })
 
 
 $('#choice-default-3').on('click', function(){
+  event.preventDefault();
   var to = new google.maps.LatLng(59.3346806,18.0621834)
-  _panoLoader.load(to);
   map.panTo( to );
 })
 
 
 $('#choice-location').on('click', function(){
+  event.preventDefault();
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
 })
 
 $('.js-intro').removeClass('inactive');
 
 pano.on('panoLinkClicked', function(id,description){
+
   $loadingLabel.find('h1').html(description)
 
   $loadingLabel.removeClass('inactive');
