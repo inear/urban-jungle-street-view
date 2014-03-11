@@ -180,6 +180,7 @@ html,body {
   position:absolute;
   top:0px;
   left:0px;
+  background-color: #ffffff;
 }
 
 .map {
@@ -275,7 +276,7 @@ html,body {
   top:45%;
 
   margin-left:-185px;
-
+  @include perspective(100px);
 
   .pegman-circle {
     position:absolute;
@@ -313,12 +314,33 @@ html,body {
     }
 
     .pegman {
-      @include transform(scale(0.5) translateX(-4px));
+      top:-30px;
+    }
+  }
+
+  &.over-road {
+
+    .pegman {
+      top:0;
+      @include transform( rotateX(-60deg) rotateY(30deg));
+    }
+
+    .pegman-circle {
+      @include transition-duration(0);
+      width:30px;
+      height:30px;
+      margin:34px;
+      @include border-radius(15px);
     }
   }
 }
 
 .pegman {
+
+  @include transform-origin(22px 68px);
+
+  @include backface-visibility(hidden);
+
   @include background-image(image-url("pegman.png"));
   display:block;
   position:relative;
@@ -329,7 +351,7 @@ html,body {
 
   @include transition-property(all);
   @include transition-duration(0.2s);
-    @include transition-timing-function(ease-in);
+  @include transition-timing-function(ease-out);
 
   &:hover {
     top: -18px;
@@ -365,4 +387,15 @@ html,body {
     background:rgba(255,255,255,0.1);
   }
 
+}
+
+.streetview-layer-tile {
+  position:absolute;
+  margin:20;
+}
+
+.streetview-layer-tile-canvas {
+  position:absolute;
+  margin:20;
+  top:260px;
 }

@@ -16,11 +16,27 @@ var normalCanvas;
 
 var TALK_DEFAULT = 'Choose your location<br>and pick me up!';
 
+var $pegman = $('#pegman');
+var $pegmanCircle = $('.js-pegman-circle');
 var $map = $('#map');
 var $intro = $('.js-intro');
 var $message = $('.js-message');
 var $introContent = $('.js-intro-content');
 var $loadingLabel = $('.js-loading-label');
+var $dragHideLayers = $('.js-drag-hide');
+var $streetviewTile = $('.js-streetview-layer-tile');
+
+var streetviewCanvas = document.createElement('canvas');
+var streetViewTileData;
+streetviewCanvas.className = 'streetview-layer-tile-canvas';
+streetviewCanvas.width = 256;
+streetviewCanvas.height = 256;
+//document.body.appendChild(streetviewCanvas);
+
+var streetviewTileImg = document.createElement('img');
+streetviewTileImg.addEventListener('load',drawStreetViewTileToCanvas.bind(this));
+
+var pano = new Pano();
 
 pegmanTalk(TALK_DEFAULT);
 
@@ -33,6 +49,7 @@ $('#backToMap').on('click', function(){
     $intro.fadeIn();
     $dragHideLayers.fadeIn();
     $pegman.removeClass('dragging');
+    $pegman.removeClass('over-road');
 
   });
 
@@ -44,8 +61,6 @@ $('#choice-default-1').on('click', function(){
   var to = new google.maps.LatLng(40.759101,-73.984406)
   _panoLoader.load(to);
   map.panTo( to );
-
-  //addMarker( currentLocation );
 })
 
 $('#choice-default-2').on('click', function(){
@@ -68,7 +83,7 @@ $('#choice-location').on('click', function(){
 
 $('.js-intro').removeClass('inactive');
 
-var pano = new Pano();
+
 
 $('.js-start-btn').on('click', function(){
   $('.js-intro').fadeOut();
@@ -86,8 +101,7 @@ pano.on('panoLinkClicked', function(id,description){
   });
 })
 
-var $pegman = $('#pegman');
-var $pegmanCircle = $('.js-pegman-circle');
+
 
 Draggable.create($pegman, {
   type:"x,y",
@@ -95,8 +109,64 @@ Draggable.create($pegman, {
   throwProps:true,
   bounds:window,
   onDragStart:onStartDragPegman,
-  onDragEnd:onEndDragPegman
+  onDragEnd:onEndDragPegman,
+  onDrag:onDragPegman
 });
+
+function onDragPegman(event) {
+  var offset = $pegman.offset(),
+  bounds = map.getBounds(),
+  neLatlng = bounds.getNorthEast(),
+  swLatlng = bounds.getSouthWest(),
+  startLat = neLatlng.lat(),
+  endLng = neLatlng.lng(),
+  endLat = swLatlng.lat(),
+  startLng = swLatlng.lng(),
+  x = offset.left + 50,
+  y = offset.top + 50
+
+  var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))
+  var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));
+
+  var TILE_SIZE = 256;
+  var proj = map.getProjection();
+  var numTiles = 1 << map.getZoom();
+  var worldCoordinate = proj.fromLatLngToPoint( new google.maps.LatLng(lat,lng));
+
+  var pixelCoordinate = new google.maps.Point(
+          worldCoordinate.x * numTiles,
+          worldCoordinate.y * numTiles);
+
+  var tileCoordinate = new google.maps.Point(
+      Math.floor(pixelCoordinate.x / TILE_SIZE),
+      Math.floor(pixelCoordinate.y / TILE_SIZE));
+
+  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);
+
+  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);
+
+  var tileUrl = 'https://mts1.googleapis.com/vt?hl=sv-SE&lyrs=svv|cb_client:apiv3&style=40,18&x='+tileCoordinate.x+'&y='+tileCoordinate.y+'&z=' + map.getZoom();
+
+  if( streetviewTileImg.src !== tileUrl ){
+    streetviewTileImg.crossOrigin = '';
+    streetviewTileImg.src = tileUrl;
+
+  }
+  else {
+    if(streetViewTileData && streetViewTileData.length > 0) {
+      //get pixel
+      var index = (Math.floor(localPixel.y) * 256 + Math.floor(localPixel.x)) * 4;
+      var trans = streetViewTileData[index];
+
+      if(trans > 0 && !$pegman.hasClass('over-road')) {
+        $pegman.addClass('over-road');
+      }
+      else if( trans === 0 && $pegman.hasClass('over-road')){
+        $pegman.removeClass('over-road');
+      }
+    }
+  }
+}
 
 function pegmanTalk( msg, timeout ){
   $message.html(msg);
@@ -146,14 +216,18 @@ function onEndDragPegman( event ){
 
   _panoLoader.load(new google.maps.LatLng(lat,lng));
 
-  //_panoLoader.load();
-  //addMarker( new google.maps.LatLng(lat,lng) );
-
 
 }
 
+function drawStreetViewTileToCanvas(){
+  streetviewCanvas.width = streetviewCanvas.width;
+  var ctx = streetviewCanvas.getContext('2d');
 
-var $dragHideLayers = $('.js-drag-hide');
+  ctx.drawImage(streetviewTileImg,0,0,256,256);
+  streetViewTileData = ctx.getImageData(0, 0, 256, 256).data;
+}
+
+
 
 /*
 
@@ -201,7 +275,6 @@ function geoSuccess( position ) {
   pegmanTalk('I can see you!',2)
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
   map.panTo( currentLocation );
-  //addMarker( currentLocation ); // move to position (thanks @theCole!)
 
 }
 
@@ -285,33 +358,6 @@ var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );
 
 var streetViewLayer = new google.maps.StreetViewCoverageLayer();
 
-google.maps.event.addListener(map, 'mousemove', function(event) {
-
-/*
-  var TILE_SIZE = 256;
-  var proj = map.getProjection();
-  var numTiles = 1 << map.getZoom();
-  var worldCoordinate = proj.fromLatLngToPoint(event.latLng);
-
-  var pixelCoordinate = new google.maps.Point(
-          worldCoordinate.x * numTiles,
-          worldCoordinate.y * numTiles);
-
-  var tileCoordinate = new google.maps.Point(
-      Math.floor(pixelCoordinate.x / TILE_SIZE),
-      Math.floor(pixelCoordinate.y / TILE_SIZE));
-
-  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);
-  //console.log(event.pixel.x + ', ' + event.pixel.y);
-
-  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);
-*/
-});
-
-/*google.maps.event.addListener(map, 'click', function(event) {
-  addMarker(event.latLng);
-});*/
-
 var geocoder = new google.maps.Geocoder();
 
 var el = document.getElementById( 'searchButton' );
@@ -331,7 +377,6 @@ function findAddress( address ) {
     if (status == google.maps.GeocoderStatus.OK) {
       map.setCenter(results[0].geometry.location);
       pegmanTalk("Found the place, let's go!",3);
-      //addMarker( results[0].geometry.location );
     } else {
       pegmanTalk("Could not find the location",5);
       //showProgress( false );
@@ -340,20 +385,6 @@ function findAddress( address ) {
 }
 
 
-function addMarker(location) {
-  if( marker ) marker.setMap( null );
-  marker = new google.maps.Marker({
-    position: location,
-    map: map
-  });
-  marker.setMap( map );
-  //_panoLoader.load( location );
-}
-
-//this.onResize = this.onResize.bind(this);
-window.addEventListener('resize',onResize);
-
-onResize();
 
 
 _panoLoader.onPanoramaLoad = function() {
@@ -468,24 +499,10 @@ _depthLoader.onDepthLoad = function( buffers ) {
 
   pano.setLinks(self.links, self.centerHeading );
 
-
-
 }
 
-
-
- //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));
- //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));
-
- //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));
-
- //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));
- //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));
- //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));
- //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));
- //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));
- //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));
- //_panoLoader.load(new google.maps.LatLng(22.300546,114.17276));
+window.addEventListener('resize',onResize);
+onResize();
 
  function onResize() {
   var w = window.innerWidth,

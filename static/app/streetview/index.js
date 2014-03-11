@@ -814,8 +814,6 @@ p.render = function(){
 
   this.composer.pass( this.bloomPass );
 
-
-
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);
 
@@ -831,7 +829,14 @@ p.render = function(){
 
   this.time += 0.01;
 
-  raf(this.render);
+  if( this.isRunning) {
+
+    if(this.rafId) {
+      raf.cancel( this.rafId);
+    }
+
+    this.rafId = raf(this.render);
+  }
 }
 
 p.testMouseOverObjects = function(){

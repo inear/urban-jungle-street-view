@@ -1313,8 +1313,6 @@ p.render = function(){\n\
 \n\
   this.composer.pass( this.bloomPass );\n\
 \n\
-\n\
-\n\
   this.composer.toScreen();\n\
   //this.renderer.render(this.scene, this.camera);\n\
 \n\
@@ -1330,7 +1328,14 @@ p.render = function(){\n\
 \n\
   this.time += 0.01;\n\
 \n\
-  raf(this.render);\n\
+  if( this.isRunning) {\n\
+\n\
+    if(this.rafId) {\n\
+      raf.cancel( this.rafId);\n\
+    }\n\
+\n\
+    this.rafId = raf(this.render);\n\
+  }\n\
 }\n\
 \n\
 p.testMouseOverObjects = function(){\n\
@@ -1465,11 +1470,27 @@ var normalCanvas;\n\
 \n\
 var TALK_DEFAULT = 'Choose your location<br>and pick me up!';\n\
 \n\
+var $pegman = $('#pegman');\n\
+var $pegmanCircle = $('.js-pegman-circle');\n\
 var $map = $('#map');\n\
 var $intro = $('.js-intro');\n\
 var $message = $('.js-message');\n\
 var $introContent = $('.js-intro-content');\n\
 var $loadingLabel = $('.js-loading-label');\n\
+var $dragHideLayers = $('.js-drag-hide');\n\
+var $streetviewTile = $('.js-streetview-layer-tile');\n\
+\n\
+var streetviewCanvas = document.createElement('canvas');\n\
+var streetViewTileData;\n\
+streetviewCanvas.className = 'streetview-layer-tile-canvas';\n\
+streetviewCanvas.width = 256;\n\
+streetviewCanvas.height = 256;\n\
+//document.body.appendChild(streetviewCanvas);\n\
+\n\
+var streetviewTileImg = document.createElement('img');\n\
+streetviewTileImg.addEventListener('load',drawStreetViewTileToCanvas.bind(this));\n\
+\n\
+var pano = new Pano();\n\
 \n\
 pegmanTalk(TALK_DEFAULT);\n\
 \n\
@@ -1482,6 +1503,7 @@ $('#backToMap').on('click', function(){\n\
     $intro.fadeIn();\n\
     $dragHideLayers.fadeIn();\n\
     $pegman.removeClass('dragging');\n\
+    $pegman.removeClass('over-road');\n\
 \n\
   });\n\
 \n\
@@ -1493,8 +1515,6 @@ $('#choice-default-1').on('click', function(){\n\
   var to = new google.maps.LatLng(40.759101,-73.984406)\n\
   _panoLoader.load(to);\n\
   map.panTo( to );\n\
-\n\
-  //addMarker( currentLocation );\n\
 })\n\
 \n\
 $('#choice-default-2').on('click', function(){\n\
@@ -1517,7 +1537,7 @@ $('#choice-location').on('click', function(){\n\
 \n\
 $('.js-intro').removeClass('inactive');\n\
 \n\
-var pano = new Pano();\n\
+\n\
 \n\
 $('.js-start-btn').on('click', function(){\n\
   $('.js-intro').fadeOut();\n\
@@ -1535,8 +1555,7 @@ pano.on('panoLinkClicked', function(id,description){\n\
   });\n\
 })\n\
 \n\
-var $pegman = $('#pegman');\n\
-var $pegmanCircle = $('.js-pegman-circle');\n\
+\n\
 \n\
 Draggable.create($pegman, {\n\
   type:\"x,y\",\n\
@@ -1544,8 +1563,64 @@ Draggable.create($pegman, {\n\
   throwProps:true,\n\
   bounds:window,\n\
   onDragStart:onStartDragPegman,\n\
-  onDragEnd:onEndDragPegman\n\
+  onDragEnd:onEndDragPegman,\n\
+  onDrag:onDragPegman\n\
 });\n\
+\n\
+function onDragPegman(event) {\n\
+  var offset = $pegman.offset(),\n\
+  bounds = map.getBounds(),\n\
+  neLatlng = bounds.getNorthEast(),\n\
+  swLatlng = bounds.getSouthWest(),\n\
+  startLat = neLatlng.lat(),\n\
+  endLng = neLatlng.lng(),\n\
+  endLat = swLatlng.lat(),\n\
+  startLng = swLatlng.lng(),\n\
+  x = offset.left + 50,\n\
+  y = offset.top + 50\n\
+\n\
+  var lat = startLat + ((y/window.innerHeight) * (endLat - startLat))\n\
+  var lng = startLng + ((x/window.innerWidth) * (endLng - startLng));\n\
+\n\
+  var TILE_SIZE = 256;\n\
+  var proj = map.getProjection();\n\
+  var numTiles = 1 << map.getZoom();\n\
+  var worldCoordinate = proj.fromLatLngToPoint( new google.maps.LatLng(lat,lng));\n\
+\n\
+  var pixelCoordinate = new google.maps.Point(\n\
+          worldCoordinate.x * numTiles,\n\
+          worldCoordinate.y * numTiles);\n\
+\n\
+  var tileCoordinate = new google.maps.Point(\n\
+      Math.floor(pixelCoordinate.x / TILE_SIZE),\n\
+      Math.floor(pixelCoordinate.y / TILE_SIZE));\n\
+\n\
+  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);\n\
+\n\
+  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);\n\
+\n\
+  var tileUrl = 'https://mts1.googleapis.com/vt?hl=sv-SE&lyrs=svv|cb_client:apiv3&style=40,18&x='+tileCoordinate.x+'&y='+tileCoordinate.y+'&z=' + map.getZoom();\n\
+\n\
+  if( streetviewTileImg.src !== tileUrl ){\n\
+    streetviewTileImg.crossOrigin = '';\n\
+    streetviewTileImg.src = tileUrl;\n\
+\n\
+  }\n\
+  else {\n\
+    if(streetViewTileData && streetViewTileData.length > 0) {\n\
+      //get pixel\n\
+      var index = (Math.floor(localPixel.y) * 256 + Math.floor(localPixel.x)) * 4;\n\
+      var trans = streetViewTileData[index];\n\
+\n\
+      if(trans > 0 && !$pegman.hasClass('over-road')) {\n\
+        $pegman.addClass('over-road');\n\
+      }\n\
+      else if( trans === 0 && $pegman.hasClass('over-road')){\n\
+        $pegman.removeClass('over-road');\n\
+      }\n\
+    }\n\
+  }\n\
+}\n\
 \n\
 function pegmanTalk( msg, timeout ){\n\
   $message.html(msg);\n\
@@ -1595,14 +1670,18 @@ function onEndDragPegman( event ){\n\
 \n\
   _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
 \n\
-  //_panoLoader.load();\n\
-  //addMarker( new google.maps.LatLng(lat,lng) );\n\
-\n\
 \n\
 }\n\
 \n\
+function drawStreetViewTileToCanvas(){\n\
+  streetviewCanvas.width = streetviewCanvas.width;\n\
+  var ctx = streetviewCanvas.getContext('2d');\n\
 \n\
-var $dragHideLayers = $('.js-drag-hide');\n\
+  ctx.drawImage(streetviewTileImg,0,0,256,256);\n\
+  streetViewTileData = ctx.getImageData(0, 0, 256, 256).data;\n\
+}\n\
+\n\
+\n\
 \n\
 /*\n\
 \n\
@@ -1650,7 +1729,6 @@ function geoSuccess( position ) {\n\
   pegmanTalk('I can see you!',2)\n\
   var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );\n\
   map.panTo( currentLocation );\n\
-  //addMarker( currentLocation ); // move to position (thanks @theCole!)\n\
 \n\
 }\n\
 \n\
@@ -1734,33 +1812,6 @@ var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );\n\
 \n\
 var streetViewLayer = new google.maps.StreetViewCoverageLayer();\n\
 \n\
-google.maps.event.addListener(map, 'mousemove', function(event) {\n\
-\n\
-/*\n\
-  var TILE_SIZE = 256;\n\
-  var proj = map.getProjection();\n\
-  var numTiles = 1 << map.getZoom();\n\
-  var worldCoordinate = proj.fromLatLngToPoint(event.latLng);\n\
-\n\
-  var pixelCoordinate = new google.maps.Point(\n\
-          worldCoordinate.x * numTiles,\n\
-          worldCoordinate.y * numTiles);\n\
-\n\
-  var tileCoordinate = new google.maps.Point(\n\
-      Math.floor(pixelCoordinate.x / TILE_SIZE),\n\
-      Math.floor(pixelCoordinate.y / TILE_SIZE));\n\
-\n\
-  //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);\n\
-  //console.log(event.pixel.x + ', ' + event.pixel.y);\n\
-\n\
-  var localPixel = new google.maps.Point(pixelCoordinate.x%256,pixelCoordinate.y%256);\n\
-*/\n\
-});\n\
-\n\
-/*google.maps.event.addListener(map, 'click', function(event) {\n\
-  addMarker(event.latLng);\n\
-});*/\n\
-\n\
 var geocoder = new google.maps.Geocoder();\n\
 \n\
 var el = document.getElementById( 'searchButton' );\n\
@@ -1780,7 +1831,6 @@ function findAddress( address ) {\n\
     if (status == google.maps.GeocoderStatus.OK) {\n\
       map.setCenter(results[0].geometry.location);\n\
       pegmanTalk(\"Found the place, let's go!\",3);\n\
-      //addMarker( results[0].geometry.location );\n\
     } else {\n\
       pegmanTalk(\"Could not find the location\",5);\n\
       //showProgress( false );\n\
@@ -1789,20 +1839,6 @@ function findAddress( address ) {\n\
 }\n\
 \n\
 \n\
-function addMarker(location) {\n\
-  if( marker ) marker.setMap( null );\n\
-  marker = new google.maps.Marker({\n\
-    position: location,\n\
-    map: map\n\
-  });\n\
-  marker.setMap( map );\n\
-  //_panoLoader.load( location );\n\
-}\n\
-\n\
-//this.onResize = this.onResize.bind(this);\n\
-window.addEventListener('resize',onResize);\n\
-\n\
-onResize();\n\
 \n\
 \n\
 _panoLoader.onPanoramaLoad = function() {\n\
@@ -1917,24 +1953,10 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
 \n\
   pano.setLinks(self.links, self.centerHeading );\n\
 \n\
-\n\
-\n\
 }\n\
 \n\
-\n\
-\n\
- //_panoLoader.load(new google.maps.LatLng(40.759101,-73.984406));\n\
- //_panoLoader.load(new google.maps.LatLng(40.726786,-73.991728));\n\
-\n\
- //_panoLoader.load(new google.maps.LatLng(57.642814,18.296309));\n\
-\n\
- //_panoLoader.load(new google.maps.LatLng(40.736952,-73.99806));\n\
- //_panoLoader.load(new google.maps.LatLng(40.759984,-73.972059));\n\
- //_panoLoader.load(new google.maps.LatLng(40.760277,-73.983897));\n\
- //_panoLoader.load(new google.maps.LatLng(40.759846, -73.984197));\n\
- //_panoLoader.load(new google.maps.LatLng(59.334429,18.061984));\n\
- //_panoLoader.load(new google.maps.LatLng(40.6849,-73.894615));\n\
- //_panoLoader.load(new google.maps.LatLng(22.300546,114.17276));\n\
+window.addEventListener('resize',onResize);\n\
+onResize();\n\
 \n\
  function onResize() {\n\
   var w = window.innerWidth,\n\
