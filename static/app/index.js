@@ -44,14 +44,14 @@ $('#backToMap').on('click', function(){
 
   pegmanTalk(TALK_DEFAULT);
 
-  pano.fadeOut( function(){
+  pano.once('transitionOutComplete', function(){
     $map.fadeIn();
     $intro.fadeIn();
     $dragHideLayers.fadeIn();
     $pegman.removeClass('dragging');
     $pegman.removeClass('over-road');
-
   });
+  pano.transitionOut();
 
   TweenLite.set($pegman, {x:0,y:0});
 
@@ -82,13 +82,6 @@ $('#choice-location').on('click', function(){
 })
 
 $('.js-intro').removeClass('inactive');
-
-
-
-$('.js-start-btn').on('click', function(){
-  $('.js-intro').fadeOut();
-  pano.start();
-});
 
 pano.on('panoLinkClicked', function(id,description){
   $loadingLabel.find('h1').html(description)

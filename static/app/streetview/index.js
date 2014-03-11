@@ -106,13 +106,6 @@ p.generateNature = function(){
   this.tree1.position.z = Math.random()*10-5;
   this.tree2.position.z = Math.random()*10-5;
 
-  if( !this.isRunning ) {
-    this.isRunning = true;
-    this.render();
-
-    $('.js-start-btn').html('Start');
-  }
-
   if( !this.isIntro ) {
     this.fadeIn();
   }
@@ -120,9 +113,23 @@ p.generateNature = function(){
 }
 
 p.start = function() {
+  console.log("3d start");
   this.initEvents();
   this.isIntro = false;
+  this.isRunning = true;
+  this.render();
   this.fadeIn();
+}
+
+p.transitionOut = function(){
+  this.isIntro = true;
+  this.isRunning = false;
+  this.removeEvents();
+
+  this.fadeOut( function(){
+    this.emit('transitionOutComplete');
+  }.bind(this));
+
 }
 
 p.fadeIn = function( callback ){
@@ -172,8 +179,6 @@ p.resetNature = function(){
 p.createPlants = function(){
 
   var created = false;
-
-
 
   var totalPlants = 200;
   for (var i = 0; i < totalPlants; i++) {
@@ -367,6 +372,17 @@ p.initEvents = function(){
   this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
 }
 
+p.removeEvents = function(){
+  this.renderer.domElement.removeEventListener( 'mousedown', this.onDocumentMouseDown );
+  this.renderer.domElement.removeEventListener( 'mousemove', this.onDocumentMouseMove );
+  this.renderer.domElement.removeEventListener( 'mouseup', this.onDocumentMouseUp );
+  this.renderer.domElement.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );
+
+  this.renderer.domElement.removeEventListener( 'touchstart', this.onDocumentTouchStart );
+  this.renderer.domElement.removeEventListener( 'touchend', this.onDocumentTouchEnd );
+  this.renderer.domElement.removeEventListener( 'touchmove', this.onDocumentTouchMove );
+}
+
 p.onDocumentMouseDown = function( event ) {
 
   event.preventDefault();
@@ -445,8 +461,6 @@ p.onDocumentTouchMove = function( event ) {
 
     this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;
     this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;
-
-    this.render();
 
   }
 

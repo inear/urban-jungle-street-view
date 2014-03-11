@@ -605,13 +605,6 @@ p.generateNature = function(){\n\
   this.tree1.position.z = Math.random()*10-5;\n\
   this.tree2.position.z = Math.random()*10-5;\n\
 \n\
-  if( !this.isRunning ) {\n\
-    this.isRunning = true;\n\
-    this.render();\n\
-\n\
-    $('.js-start-btn').html('Start');\n\
-  }\n\
-\n\
   if( !this.isIntro ) {\n\
     this.fadeIn();\n\
   }\n\
@@ -619,9 +612,23 @@ p.generateNature = function(){\n\
 }\n\
 \n\
 p.start = function() {\n\
+  console.log(\"3d start\");\n\
   this.initEvents();\n\
   this.isIntro = false;\n\
+  this.isRunning = true;\n\
+  this.render();\n\
   this.fadeIn();\n\
+}\n\
+\n\
+p.transitionOut = function(){\n\
+  this.isIntro = true;\n\
+  this.isRunning = false;\n\
+  this.removeEvents();\n\
+\n\
+  this.fadeOut( function(){\n\
+    this.emit('transitionOutComplete');\n\
+  }.bind(this));\n\
+\n\
 }\n\
 \n\
 p.fadeIn = function( callback ){\n\
@@ -671,8 +678,6 @@ p.resetNature = function(){\n\
 p.createPlants = function(){\n\
 \n\
   var created = false;\n\
-\n\
-\n\
 \n\
   var totalPlants = 200;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
@@ -866,6 +871,17 @@ p.initEvents = function(){\n\
   this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
+p.removeEvents = function(){\n\
+  this.renderer.domElement.removeEventListener( 'mousedown', this.onDocumentMouseDown );\n\
+  this.renderer.domElement.removeEventListener( 'mousemove', this.onDocumentMouseMove );\n\
+  this.renderer.domElement.removeEventListener( 'mouseup', this.onDocumentMouseUp );\n\
+  this.renderer.domElement.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );\n\
+\n\
+  this.renderer.domElement.removeEventListener( 'touchstart', this.onDocumentTouchStart );\n\
+  this.renderer.domElement.removeEventListener( 'touchend', this.onDocumentTouchEnd );\n\
+  this.renderer.domElement.removeEventListener( 'touchmove', this.onDocumentTouchMove );\n\
+}\n\
+\n\
 p.onDocumentMouseDown = function( event ) {\n\
 \n\
   event.preventDefault();\n\
@@ -944,8 +960,6 @@ p.onDocumentTouchMove = function( event ) {\n\
 \n\
     this.mouse2d.x = ( event.touches[0].pageX / window.innerWidth ) * 2 - 1;\n\
     this.mouse2d.y = - ( event.touches[0].pageY / window.innerHeight ) * 2 + 1;\n\
-\n\
-    this.render();\n\
 \n\
   }\n\
 \n\
@@ -1498,14 +1512,14 @@ $('#backToMap').on('click', function(){\n\
 \n\
   pegmanTalk(TALK_DEFAULT);\n\
 \n\
-  pano.fadeOut( function(){\n\
+  pano.once('transitionOutComplete', function(){\n\
     $map.fadeIn();\n\
     $intro.fadeIn();\n\
     $dragHideLayers.fadeIn();\n\
     $pegman.removeClass('dragging');\n\
     $pegman.removeClass('over-road');\n\
-\n\
   });\n\
+  pano.transitionOut();\n\
 \n\
   TweenLite.set($pegman, {x:0,y:0});\n\
 \n\
@@ -1536,13 +1550,6 @@ $('#choice-location').on('click', function(){\n\
 })\n\
 \n\
 $('.js-intro').removeClass('inactive');\n\
-\n\
-\n\
-\n\
-$('.js-start-btn').on('click', function(){\n\
-  $('.js-intro').fadeOut();\n\
-  pano.start();\n\
-});\n\
 \n\
 pano.on('panoLinkClicked', function(id,description){\n\
   $loadingLabel.find('h1').html(description)\n\
