@@ -880,6 +880,7 @@ p.initEvents = function(){\n\
 \n\
   this.renderer.domElement.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
   this.renderer.domElement.addEventListener( 'touchend', this.onDocumentTouchEnd, false );\n\
+  this.renderer.domElement.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );\n\
   this.renderer.domElement.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
 }\n\
 \n\
@@ -891,6 +892,7 @@ p.removeEvents = function(){\n\
 \n\
   this.renderer.domElement.removeEventListener( 'touchstart', this.onDocumentTouchStart );\n\
   this.renderer.domElement.removeEventListener( 'touchend', this.onDocumentTouchEnd );\n\
+  this.renderer.domElement.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );\n\
   this.renderer.domElement.removeEventListener( 'touchmove', this.onDocumentTouchMove );\n\
 }\n\
 \n\
