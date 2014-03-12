@@ -1,6 +1,7 @@
 var raf = require('raf');
 var Emitter = require('emitter');
 var Nav = require('./nav');
+var detector = require('./utils/detector');
 
 var DEG_TO_RAD = Math.PI/180;
 var MAP_WIDTH = 512;

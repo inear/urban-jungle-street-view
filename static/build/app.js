@@ -500,6 +500,7 @@ require.register("streetview/index.js", Function("exports, require, module",
 "var raf = require('raf');\n\
 var Emitter = require('emitter');\n\
 var Nav = require('./nav');\n\
+var detector = require('./utils/detector');\n\
 \n\
 var DEG_TO_RAD = Math.PI/180;\n\
 var MAP_WIDTH = 512;\n\
@@ -1462,6 +1463,147 @@ p.onResize  = function( w, h) {\n\
 }\n\
 //@ sourceURL=streetview/index.js"
 ));
+require.register("streetview/utils/detector.js", Function("exports, require, module",
+"'use strict';\n\
+\n\
+var $html = $('html');\n\
+var ua = navigator.userAgent;\n\
+\n\
+function _modernizr(feature) {\n\
+  return $html.hasClass(feature);\n\
+}\n\
+\n\
+/*\n\
+ * CONST\n\
+ */\n\
+\n\
+var TYPE_MOBILE = 1;\n\
+var TYPE_TOUCH = 2;\n\
+var TYPE_DESKTOP = 3;\n\
+\n\
+var TABLET_BREAKPOINT = { width: 645, height: 645 };\n\
+\n\
+/**\n\
+ * Detect if the device is a touch device or not.\n\
+ *\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isTouchDevice = !!('ontouchstart' in window) || !!('onmsgesturechange' in window);\n\
+\n\
+/**\n\
+ * Detect if it's a mobile/tablet.\n\
+ *\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isMobile = (/android|webos|ip(hone|ad|od)|blackberry|iemobile|windows (ce|phone)|opera mini/i).test(ua.toLowerCase());\n\
+var isTablet = isMobile && (window.innerWidth > TABLET_BREAKPOINT.width || window.innerHeight > TABLET_BREAKPOINT.height);\n\
+\n\
+\n\
+/**\n\
+ * Returns the type of the device (TYPE_MOBILE, TYPE_TOUCH, TYPE_DESKTOP).\n\
+ *\n\
+ * @return {Int} see const (TYPE_MOBILE, TYPE_TOUCH, TYPE_DESKTOP).\n\
+ * @public\n\
+ */\n\
+\n\
+\n\
+var getType = (function() {\n\
+  if (isMobile) {\n\
+    return TYPE_MOBILE;\n\
+  }\n\
+\n\
+  if (isTouchDevice) {\n\
+    return TYPE_TOUCH;\n\
+  }\n\
+\n\
+  return TYPE_DESKTOP;\n\
+}());\n\
+\n\
+/**\n\
+ * Use modernizr to detect if the \"browser\" support WebGL.\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var webgl = (function() {\n\
+  try {\n\
+    return !!window.WebGLRenderingContext && (!!document.createElement('canvas').getContext('experimental-webgl') || !!document.createElement('canvas').getContext('webgl'));\n\
+  } catch(e) {\n\
+      return false;\n\
+  }\n\
+}());\n\
+\n\
+\n\
+/**\n\
+ * Detect if we support this browser or not.\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isBrowserSupported = _modernizr('canvas') && _modernizr('csstransforms') && _modernizr('csstransforms3d') && _modernizr('svg');\n\
+\n\
+var isRetina = window.devicePixelRatio >= 2;\n\
+\n\
+var isNexusPhone = (/nexus\\s4|galaxy\\snexus/i).test(ua);\n\
+var isNexusTablet = (/nexus\\s7|nexus\\s10/i).test(ua);\n\
+\n\
+var isMozilla = !!~ua.indexOf('Gecko') && !~ua.indexOf('KHTML');\n\
+var isIE = (/MSIE (\\d+\\.\\d+);/).test(ua);\n\
+var isiOS = (/ip(hone|ad|od)/i).test(ua);\n\
+\n\
+// Quick fix for ipad.\n\
+// Use the same layout/perf optimisation as the mobile version\n\
+if (isiOS) {\n\
+  isMobile = true;\n\
+  isTablet = false;\n\
+}\n\
+\n\
+\n\
+var hasPointerEvents = (function() {\n\
+  if(navigator.appName == 'Microsoft Internet Explorer')\n\
+  {\n\
+      var agent = navigator.userAgent;\n\
+      if (agent.match(/MSIE ([0-9]{1,}[\\.0-9]{0,})/) != null){\n\
+          var version = parseFloat( RegExp.$1 );\n\
+          if(version < 11)\n\
+            return false;\n\
+      }\n\
+  }\n\
+  return true;\n\
+}());\n\
+\n\
+\n\
+/**\n\
+ * Expose data.\n\
+ */\n\
+\n\
+module.exports = {\n\
+  TYPE_MOBILE: TYPE_MOBILE,\n\
+  TYPE_TOUCH: TYPE_TOUCH,\n\
+  TYPE_DESKTOP: TYPE_DESKTOP,\n\
+\n\
+  isBrowserSupported: isBrowserSupported,\n\
+  isTouchDevice: isTouchDevice,\n\
+  isMobile: isMobile,\n\
+  isTablet: isTablet,\n\
+  isDesktop: !isMobile && !isTablet,\n\
+  isRetina: isRetina,\n\
+  getType: getType,\n\
+  webgl: webgl,\n\
+  hasPointerEvents: hasPointerEvents,\n\
+\n\
+  isNexusPhone: isNexusPhone,\n\
+  isNexusTablet: isNexusTablet,\n\
+  isMozilla: isMozilla,\n\
+  isIE: isIE,\n\
+  isiOS: isiOS,\n\
+};\n\
+//@ sourceURL=streetview/utils/detector.js"
+));
 require.register("streetview/streetview_vs.glsl", Function("exports, require, module",
 "module.exports = '// switch on high precision floats\\n\
 varying vec4 mPosition;\\n\
@@ -2056,6 +2198,7 @@ onResize();\n\
 
 require.alias("streetview/nav.js", "urbanjungle/deps/streetview/nav.js");
 require.alias("streetview/index.js", "urbanjungle/deps/streetview/index.js");
+require.alias("streetview/utils/detector.js", "urbanjungle/deps/streetview/utils/detector.js");
 require.alias("streetview/index.js", "urbanjungle/deps/streetview/index.js");
 require.alias("streetview/index.js", "streetview/index.js");
 require.alias("component-raf/index.js", "streetview/deps/raf/index.js");
