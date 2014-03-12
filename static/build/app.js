@@ -508,16 +508,6 @@ var MAP_HEIGHT = 256;\n\
 \n\
 module.exports = PanoView;\n\
 \n\
-var isWebGL = function () {\n\
-  try {\n\
-    return !! window.WebGLRenderingContext\n\
-            && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );\n\
-  } catch(e) {\n\
-    console.log('WebGL not available');\n\
-    return false;\n\
-  }\n\
-};\n\
-\n\
 function PanoView(){\n\
 \n\
   this.container = $('#app')[0];\n\
@@ -1665,7 +1655,7 @@ void main() {\\n\
 ));
 require.register("urbanjungle/static/app/index.js", Function("exports, require, module",
 "'use strict';\n\
-\n\
+var detector = require('./streetview/utils/detector');\n\
 var Pano = require('streetview');\n\
 \n\
 var self = {};\n\
@@ -1701,6 +1691,11 @@ streetviewCanvas.height = 256;\n\
 \n\
 var streetviewTileImg = document.createElement('img');\n\
 streetviewTileImg.addEventListener('load',drawStreetViewTileToCanvas.bind(this));\n\
+\n\
+if( !detector.webgl ) {\n\
+  location.href='nosupport.html';\n\
+  return;\n\
+}\n\
 \n\
 var pano = new Pano();\n\
 \n\
@@ -1754,8 +1749,6 @@ pano.on('panoLinkClicked', function(id,description){\n\
 })\n\
 \n\
 function backToMap() {\n\
-\n\
-\n\
 \n\
   if( pano.isRunning ) {\n\
     pano.once('transitionOutComplete', function(){\n\
@@ -2193,6 +2186,147 @@ onResize();\n\
 \n\
 \n\
 //@ sourceURL=urbanjungle/static/app/index.js"
+));
+require.register("urbanjungle/static/app/streetview/utils/detector.js", Function("exports, require, module",
+"'use strict';\n\
+\n\
+var $html = $('html');\n\
+var ua = navigator.userAgent;\n\
+\n\
+function _modernizr(feature) {\n\
+  return $html.hasClass(feature);\n\
+}\n\
+\n\
+/*\n\
+ * CONST\n\
+ */\n\
+\n\
+var TYPE_MOBILE = 1;\n\
+var TYPE_TOUCH = 2;\n\
+var TYPE_DESKTOP = 3;\n\
+\n\
+var TABLET_BREAKPOINT = { width: 645, height: 645 };\n\
+\n\
+/**\n\
+ * Detect if the device is a touch device or not.\n\
+ *\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isTouchDevice = !!('ontouchstart' in window) || !!('onmsgesturechange' in window);\n\
+\n\
+/**\n\
+ * Detect if it's a mobile/tablet.\n\
+ *\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isMobile = (/android|webos|ip(hone|ad|od)|blackberry|iemobile|windows (ce|phone)|opera mini/i).test(ua.toLowerCase());\n\
+var isTablet = isMobile && (window.innerWidth > TABLET_BREAKPOINT.width || window.innerHeight > TABLET_BREAKPOINT.height);\n\
+\n\
+\n\
+/**\n\
+ * Returns the type of the device (TYPE_MOBILE, TYPE_TOUCH, TYPE_DESKTOP).\n\
+ *\n\
+ * @return {Int} see const (TYPE_MOBILE, TYPE_TOUCH, TYPE_DESKTOP).\n\
+ * @public\n\
+ */\n\
+\n\
+\n\
+var getType = (function() {\n\
+  if (isMobile) {\n\
+    return TYPE_MOBILE;\n\
+  }\n\
+\n\
+  if (isTouchDevice) {\n\
+    return TYPE_TOUCH;\n\
+  }\n\
+\n\
+  return TYPE_DESKTOP;\n\
+}());\n\
+\n\
+/**\n\
+ * Use modernizr to detect if the \"browser\" support WebGL.\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var webgl = (function() {\n\
+  try {\n\
+    return !!window.WebGLRenderingContext && (!!document.createElement('canvas').getContext('experimental-webgl') || !!document.createElement('canvas').getContext('webgl'));\n\
+  } catch(e) {\n\
+      return false;\n\
+  }\n\
+}());\n\
+\n\
+\n\
+/**\n\
+ * Detect if we support this browser or not.\n\
+ * @return {Boolean}\n\
+ * @public\n\
+ */\n\
+\n\
+var isBrowserSupported = _modernizr('canvas') && _modernizr('csstransforms') && _modernizr('csstransforms3d') && _modernizr('svg');\n\
+\n\
+var isRetina = window.devicePixelRatio >= 2;\n\
+\n\
+var isNexusPhone = (/nexus\\s4|galaxy\\snexus/i).test(ua);\n\
+var isNexusTablet = (/nexus\\s7|nexus\\s10/i).test(ua);\n\
+\n\
+var isMozilla = !!~ua.indexOf('Gecko') && !~ua.indexOf('KHTML');\n\
+var isIE = (/MSIE (\\d+\\.\\d+);/).test(ua);\n\
+var isiOS = (/ip(hone|ad|od)/i).test(ua);\n\
+\n\
+// Quick fix for ipad.\n\
+// Use the same layout/perf optimisation as the mobile version\n\
+if (isiOS) {\n\
+  isMobile = true;\n\
+  isTablet = false;\n\
+}\n\
+\n\
+\n\
+var hasPointerEvents = (function() {\n\
+  if(navigator.appName == 'Microsoft Internet Explorer')\n\
+  {\n\
+      var agent = navigator.userAgent;\n\
+      if (agent.match(/MSIE ([0-9]{1,}[\\.0-9]{0,})/) != null){\n\
+          var version = parseFloat( RegExp.$1 );\n\
+          if(version < 11)\n\
+            return false;\n\
+      }\n\
+  }\n\
+  return true;\n\
+}());\n\
+\n\
+\n\
+/**\n\
+ * Expose data.\n\
+ */\n\
+\n\
+module.exports = {\n\
+  TYPE_MOBILE: TYPE_MOBILE,\n\
+  TYPE_TOUCH: TYPE_TOUCH,\n\
+  TYPE_DESKTOP: TYPE_DESKTOP,\n\
+\n\
+  isBrowserSupported: isBrowserSupported,\n\
+  isTouchDevice: isTouchDevice,\n\
+  isMobile: isMobile,\n\
+  isTablet: isTablet,\n\
+  isDesktop: !isMobile && !isTablet,\n\
+  isRetina: isRetina,\n\
+  getType: getType,\n\
+  webgl: webgl,\n\
+  hasPointerEvents: hasPointerEvents,\n\
+\n\
+  isNexusPhone: isNexusPhone,\n\
+  isNexusTablet: isNexusTablet,\n\
+  isMozilla: isMozilla,\n\
+  isIE: isIE,\n\
+  isiOS: isiOS,\n\
+};\n\
+//@ sourceURL=urbanjungle/static/app/streetview/utils/detector.js"
 ));
 
 

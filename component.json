@@ -7,7 +7,8 @@
     "streetview"
   ],
   "scripts": [
-    "static/app/index.js"
+    "static/app/index.js",
+    "static/app/streetview/utils/detector.js"
   ],
 
   "main": "static/app/index.js",

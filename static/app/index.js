@@ -1,5 +1,5 @@
 'use strict';
-
+var detector = require('./streetview/utils/detector');
 var Pano = require('streetview');
 
 var self = {};
@@ -35,6 +35,11 @@ streetviewCanvas.height = 256;
 
 var streetviewTileImg = document.createElement('img');
 streetviewTileImg.addEventListener('load',drawStreetViewTileToCanvas.bind(this));
+
+if( !detector.webgl ) {
+  location.href='nosupport.html';
+  return;
+}
 
 var pano = new Pano();
 
@@ -88,8 +93,6 @@ pano.on('panoLinkClicked', function(id,description){
 })
 
 function backToMap() {
-
-
 
   if( pano.isRunning ) {
     pano.once('transitionOutComplete', function(){

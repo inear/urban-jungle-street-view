@@ -9,16 +9,6 @@ var MAP_HEIGHT = 256;
 
 module.exports = PanoView;
 
-var isWebGL = function () {
-  try {
-    return !! window.WebGLRenderingContext
-            && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );
-  } catch(e) {
-    console.log('WebGL not available');
-    return false;
-  }
-};
-
 function PanoView(){
 
   this.container = $('#app')[0];
