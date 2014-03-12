@@ -13,7 +13,7 @@ var isWebGL = function () {
     return !! window.WebGLRenderingContext
             && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );
   } catch(e) {
-    console.log('WebGL not available starting with CanvasRenderer');
+    console.log('WebGL not available');
     return false;
   }
 };
@@ -41,6 +41,7 @@ function PanoView(){
   this.onMouseDownLat = 0;
   this.phi = 0;
   this.theta = 0;
+  this.updatedTarget = new THREE.Vector3();
   this.target = new THREE.Vector3();
 
   this.normalMapCanvas = null;
@@ -275,7 +276,7 @@ p.createClimbingFoliages = function(){
 p.init3D = function(){
 
 
-  this.renderer = new THREE.WebGLRenderer({alpha:false});
+  this.renderer = new THREE.WebGLRenderer({alpha:true});
   this.renderer.autoClearColor = false;
   this.renderer.setClearColor(0xffffff,1);
   this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -368,39 +369,39 @@ p.setLinks = function( links, centerHeading ){
 p.initEvents = function(){
   //$(this.renderer.domElement).on('click', this.onSceneClick);
 
-  this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
-  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);
-  this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);
-  this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);
+  this.onContainerMouseDown = this.onContainerMouseDown.bind(this);
+  this.onContainerMouseMove = this.onContainerMouseMove.bind(this);
+  this.onContainerMouseUp = this.onContainerMouseUp.bind(this);
+  this.onContainerMouseWheel = this.onContainerMouseWheel.bind(this);
 
-  this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);
-  this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);
-  this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);
+  this.onContainerTouchStart = this.onContainerTouchStart.bind(this);
+  this.onContainerTouchEnd = this.onContainerTouchEnd.bind(this);
+  this.onContainerTouchMove = this.onContainerTouchMove.bind(this);
 
-  this.container.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
-  this.container.addEventListener( 'mousemove', this.onDocumentMouseMove, false );
-  this.container.addEventListener( 'mouseup', this.onDocumentMouseUp, false );
-  this.container.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );
+  this.container.addEventListener( 'mousedown', this.onContainerMouseDown, false );
+  this.container.addEventListener( 'mousemove', this.onContainerMouseMove, false );
+  this.container.addEventListener( 'mouseup', this.onContainerMouseUp, false );
+  this.container.addEventListener( 'mousewheel', this.onContainerMouseWheel, false );
 
-  this.container.addEventListener( 'touchstart', this.onDocumentTouchStart, false );
-  this.container.addEventListener( 'touchend', this.onDocumentTouchEnd, false );
-  this.container.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );
-  this.container.addEventListener( 'touchmove', this.onDocumentTouchMove, false );
+  this.container.addEventListener( 'touchstart', this.onContainerTouchStart, false );
+  this.container.addEventListener( 'touchend', this.onContainerTouchEnd, false );
+  this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );
+  this.container.addEventListener( 'touchmove', this.onContainerTouchMove, false );
 }
 
 p.removeEvents = function(){
-  this.container.removeEventListener( 'mousedown', this.onDocumentMouseDown );
-  this.container.removeEventListener( 'mousemove', this.onDocumentMouseMove );
-  this.container.removeEventListener( 'mouseup', this.onDocumentMouseUp );
-  this.container.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );
+  this.container.removeEventListener( 'mousedown', this.onContainerMouseDown );
+  this.container.removeEventListener( 'mousemove', this.onContainerMouseMove );
+  this.container.removeEventListener( 'mouseup', this.onContainerMouseUp );
+  this.container.removeEventListener( 'mousewheel', this.onContainerMouseWheel );
 
-  this.container.removeEventListener( 'touchstart', this.onDocumentTouchStart );
-  this.container.removeEventListener( 'touchend', this.onDocumentTouchEnd );
-  this.container.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );
-  this.container.removeEventListener( 'touchmove', this.onDocumentTouchMove );
+  this.container.removeEventListener( 'touchstart', this.onContainerTouchStart );
+  this.container.removeEventListener( 'touchend', this.onContainerTouchEnd );
+  this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );
+  this.container.removeEventListener( 'touchmove', this.onContainerTouchMove );
 }
 
-p.onDocumentMouseDown = function( event ) {
+p.onContainerMouseDown = function( event ) {
 
   event.preventDefault();
 
@@ -417,10 +418,7 @@ p.onDocumentMouseDown = function( event ) {
 
 }
 
-var lastTime = 0;
-var delta;
-
-p.onDocumentMouseMove = function( event ) {
+p.onContainerMouseMove = function( event ) {
 
   event.preventDefault();
 
@@ -434,12 +432,13 @@ p.onDocumentMouseMove = function( event ) {
   this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;
   this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;
 
-  delta = Date.now()-lastTime
-
+  delta = Date.now()-lastTime;
   lastTime = Date.now();
+  $('#debug').text( delta );
+
 }
 
-p.onDocumentMouseUp = function( event ) {
+p.onContainerMouseUp = function( event ) {
   this.isUserInteracting = false;
 
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
@@ -450,14 +449,14 @@ p.onDocumentMouseUp = function( event ) {
 
 }
 
-p.onDocumentMouseWheel = function( event ) {
+p.onContainerMouseWheel = function( event ) {
   this.camera.fov -= event.wheelDeltaY * 0.05;
 
   this.camera.fov = Math.min(80,Math.max(40,this.camera.fov));
   this.camera.updateProjectionMatrix();
 }
 
-p.onDocumentTouchStart = function( event ) {
+p.onContainerTouchStart = function( event ) {
 
   if ( event.touches.length == 1 ) {
 
@@ -476,14 +475,14 @@ p.onDocumentTouchStart = function( event ) {
 
 }
 
-p.onDocumentTouchEnd = function( event ){
+p.onContainerTouchEnd = function( event ){
   this.isUserInteracting = false;
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
     this.onSceneClick(event);
   }
 }
 
-p.onDocumentTouchMove = function( event ) {
+p.onContainerTouchMove = function( event ) {
 
   if ( event.touches.length == 1 ) {
 
@@ -831,7 +830,22 @@ p.createClimbingPlant = function(){
   return mesh;
 }
 
+
+var lastTime = 0;
+var delta;
+
+
 p.render = function(){
+
+
+  if( this.isRunning) {
+
+    /*if(this.rafId) {
+      raf.cancel( this.rafId);
+    }
+*/
+    this.rafId = raf(this.render);
+  }
 
   this.renderer.autoClearColor = false;
 
@@ -864,13 +878,21 @@ p.render = function(){
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);
 
+  //this.lon += 1;
+
   this.lat = Math.max( - 85, Math.min( 85, this.lat ) );
   this.phi = ( 90 - this.lat ) * Math.PI / 180;
   this.theta = this.lon * Math.PI / 180;
 
-  this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );
-  this.target.y = 500 * Math.cos( this.phi );
-  this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );
+  this.updatedTarget.set(
+    500 * Math.sin( this.phi ) * Math.cos( this.theta ),
+    500 * Math.cos( this.phi ),
+    500 * Math.sin( this.phi ) * Math.sin( this.theta )
+
+  )
+
+  this.target.lerp(this.updatedTarget,1);
+
 
   this.target.x += Math.cos(this.time*2)*10;
   this.target.y += Math.cos(this.time*2)*10;
@@ -879,14 +901,9 @@ p.render = function(){
 
   this.time += 0.01;
 
-  if( this.isRunning) {
 
-    /*if(this.rafId) {
-      raf.cancel( this.rafId);
-    }
-*/
-    this.rafId = raf(this.render);
-  }
+  //console.log(delta);
+
 }
 
 p.testMouseOverObjects = function(){

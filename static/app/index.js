@@ -89,6 +89,8 @@ pano.on('panoLinkClicked', function(id,description){
 
 function backToMap() {
 
+
+
   if( pano.isRunning ) {
     pano.once('transitionOutComplete', function(){
       showMap();
@@ -102,6 +104,7 @@ function backToMap() {
   }
 
   function showMap() {
+    draggingInstance.enable();
     $map.fadeIn();
     $intro.fadeIn();
     $dragHideLayers.fadeIn();
@@ -111,7 +114,7 @@ function backToMap() {
 
 }
 
-Draggable.create($pegman, {
+var draggingInstance = Draggable.create($pegman, {
   type:"x,y",
   edgeResistance:0.5,
   throwProps:true,
@@ -121,7 +124,9 @@ Draggable.create($pegman, {
   onDrag:onDragPegman
 });
 
+
 function onDragPegman(event) {
+
   var offset = $pegman.offset(),
   bounds = map.getBounds(),
   neLatlng = bounds.getNorthEast(),
@@ -224,6 +229,7 @@ function onEndDragPegman( event ){
 
   _panoLoader.load(new google.maps.LatLng(lat,lng));
 
+  draggingInstance.disable();
 
 }
 
@@ -375,7 +381,7 @@ el.addEventListener( 'click', function( event ) {
 }, false );
 
 
-document.getElementById("address").focus();
+//document.getElementById("address").focus();
 
 function findAddress( address ) {
 
@@ -518,4 +524,5 @@ onResize();
     pano.onResize(w,h);
 
  }
+
 

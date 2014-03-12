@@ -88,8 +88,8 @@
   top:0px;
   left:0px;
   background-color: #ffffff;
-  @include transform(translateZ(0));
-  opacity: 0.9999;
+  @include backface-visibility(hidden);
+  //opacity: 0.9999;
 }
 
 .map {
@@ -161,6 +161,11 @@
 
   &:focus, &:focus{
     outline: 0;
+  }
+
+  @media all and (min-width: 0px) and (max-width:820px) {
+    font-size:12px;
+    bottom:10%;
   }
 }
 
@@ -307,4 +312,11 @@
   position:absolute;
   margin:20;
   top:260px;
+}
+
+#debug {
+  position:absolute;
+  right:70px;
+  width:50px;
+  top:20;
 }

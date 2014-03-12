@@ -512,7 +512,7 @@ var isWebGL = function () {\n\
     return !! window.WebGLRenderingContext\n\
             && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );\n\
   } catch(e) {\n\
-    console.log('WebGL not available starting with CanvasRenderer');\n\
+    console.log('WebGL not available');\n\
     return false;\n\
   }\n\
 };\n\
@@ -540,6 +540,7 @@ function PanoView(){\n\
   this.onMouseDownLat = 0;\n\
   this.phi = 0;\n\
   this.theta = 0;\n\
+  this.updatedTarget = new THREE.Vector3();\n\
   this.target = new THREE.Vector3();\n\
 \n\
   this.normalMapCanvas = null;\n\
@@ -774,7 +775,7 @@ p.createClimbingFoliages = function(){\n\
 p.init3D = function(){\n\
 \n\
 \n\
-  this.renderer = new THREE.WebGLRenderer({alpha:false});\n\
+  this.renderer = new THREE.WebGLRenderer({alpha:true});\n\
   this.renderer.autoClearColor = false;\n\
   this.renderer.setClearColor(0xffffff,1);\n\
   this.renderer.setSize( window.innerWidth, window.innerHeight );\n\
@@ -867,39 +868,39 @@ p.setLinks = function( links, centerHeading ){\n\
 p.initEvents = function(){\n\
   //$(this.renderer.domElement).on('click', this.onSceneClick);\n\
 \n\
-  this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);\n\
-  this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this);\n\
-  this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);\n\
-  this.onDocumentMouseWheel = this.onDocumentMouseWheel.bind(this);\n\
+  this.onContainerMouseDown = this.onContainerMouseDown.bind(this);\n\
+  this.onContainerMouseMove = this.onContainerMouseMove.bind(this);\n\
+  this.onContainerMouseUp = this.onContainerMouseUp.bind(this);\n\
+  this.onContainerMouseWheel = this.onContainerMouseWheel.bind(this);\n\
 \n\
-  this.onDocumentTouchStart = this.onDocumentTouchStart.bind(this);\n\
-  this.onDocumentTouchEnd = this.onDocumentTouchEnd.bind(this);\n\
-  this.onDocumentTouchMove = this.onDocumentTouchMove.bind(this);\n\
+  this.onContainerTouchStart = this.onContainerTouchStart.bind(this);\n\
+  this.onContainerTouchEnd = this.onContainerTouchEnd.bind(this);\n\
+  this.onContainerTouchMove = this.onContainerTouchMove.bind(this);\n\
 \n\
-  this.container.addEventListener( 'mousedown', this.onDocumentMouseDown, false );\n\
-  this.container.addEventListener( 'mousemove', this.onDocumentMouseMove, false );\n\
-  this.container.addEventListener( 'mouseup', this.onDocumentMouseUp, false );\n\
-  this.container.addEventListener( 'mousewheel', this.onDocumentMouseWheel, false );\n\
+  this.container.addEventListener( 'mousedown', this.onContainerMouseDown, false );\n\
+  this.container.addEventListener( 'mousemove', this.onContainerMouseMove, false );\n\
+  this.container.addEventListener( 'mouseup', this.onContainerMouseUp, false );\n\
+  this.container.addEventListener( 'mousewheel', this.onContainerMouseWheel, false );\n\
 \n\
-  this.container.addEventListener( 'touchstart', this.onDocumentTouchStart, false );\n\
-  this.container.addEventListener( 'touchend', this.onDocumentTouchEnd, false );\n\
-  this.container.addEventListener( 'touchcancel', this.onDocumentTouchEnd, false );\n\
-  this.container.addEventListener( 'touchmove', this.onDocumentTouchMove, false );\n\
+  this.container.addEventListener( 'touchstart', this.onContainerTouchStart, false );\n\
+  this.container.addEventListener( 'touchend', this.onContainerTouchEnd, false );\n\
+  this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );\n\
+  this.container.addEventListener( 'touchmove', this.onContainerTouchMove, false );\n\
 }\n\
 \n\
 p.removeEvents = function(){\n\
-  this.container.removeEventListener( 'mousedown', this.onDocumentMouseDown );\n\
-  this.container.removeEventListener( 'mousemove', this.onDocumentMouseMove );\n\
-  this.container.removeEventListener( 'mouseup', this.onDocumentMouseUp );\n\
-  this.container.removeEventListener( 'mousewheel', this.onDocumentMouseWheel );\n\
+  this.container.removeEventListener( 'mousedown', this.onContainerMouseDown );\n\
+  this.container.removeEventListener( 'mousemove', this.onContainerMouseMove );\n\
+  this.container.removeEventListener( 'mouseup', this.onContainerMouseUp );\n\
+  this.container.removeEventListener( 'mousewheel', this.onContainerMouseWheel );\n\
 \n\
-  this.container.removeEventListener( 'touchstart', this.onDocumentTouchStart );\n\
-  this.container.removeEventListener( 'touchend', this.onDocumentTouchEnd );\n\
-  this.container.removeEventListener( 'touchcancel', this.onDocumentTouchEnd );\n\
-  this.container.removeEventListener( 'touchmove', this.onDocumentTouchMove );\n\
+  this.container.removeEventListener( 'touchstart', this.onContainerTouchStart );\n\
+  this.container.removeEventListener( 'touchend', this.onContainerTouchEnd );\n\
+  this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );\n\
+  this.container.removeEventListener( 'touchmove', this.onContainerTouchMove );\n\
 }\n\
 \n\
-p.onDocumentMouseDown = function( event ) {\n\
+p.onContainerMouseDown = function( event ) {\n\
 \n\
   event.preventDefault();\n\
 \n\
@@ -916,10 +917,7 @@ p.onDocumentMouseDown = function( event ) {\n\
 \n\
 }\n\
 \n\
-var lastTime = 0;\n\
-var delta;\n\
-\n\
-p.onDocumentMouseMove = function( event ) {\n\
+p.onContainerMouseMove = function( event ) {\n\
 \n\
   event.preventDefault();\n\
 \n\
@@ -933,12 +931,13 @@ p.onDocumentMouseMove = function( event ) {\n\
   this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;\n\
   this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;\n\
 \n\
-  delta = Date.now()-lastTime\n\
-\n\
+  delta = Date.now()-lastTime;\n\
   lastTime = Date.now();\n\
+  $('#debug').text( delta );\n\
+\n\
 }\n\
 \n\
-p.onDocumentMouseUp = function( event ) {\n\
+p.onContainerMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
 \n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
@@ -949,14 +948,14 @@ p.onDocumentMouseUp = function( event ) {\n\
 \n\
 }\n\
 \n\
-p.onDocumentMouseWheel = function( event ) {\n\
+p.onContainerMouseWheel = function( event ) {\n\
   this.camera.fov -= event.wheelDeltaY * 0.05;\n\
 \n\
   this.camera.fov = Math.min(80,Math.max(40,this.camera.fov));\n\
   this.camera.updateProjectionMatrix();\n\
 }\n\
 \n\
-p.onDocumentTouchStart = function( event ) {\n\
+p.onContainerTouchStart = function( event ) {\n\
 \n\
   if ( event.touches.length == 1 ) {\n\
 \n\
@@ -975,14 +974,14 @@ p.onDocumentTouchStart = function( event ) {\n\
 \n\
 }\n\
 \n\
-p.onDocumentTouchEnd = function( event ){\n\
+p.onContainerTouchEnd = function( event ){\n\
   this.isUserInteracting = false;\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
     this.onSceneClick(event);\n\
   }\n\
 }\n\
 \n\
-p.onDocumentTouchMove = function( event ) {\n\
+p.onContainerTouchMove = function( event ) {\n\
 \n\
   if ( event.touches.length == 1 ) {\n\
 \n\
@@ -1330,7 +1329,22 @@ p.createClimbingPlant = function(){\n\
   return mesh;\n\
 }\n\
 \n\
+\n\
+var lastTime = 0;\n\
+var delta;\n\
+\n\
+\n\
 p.render = function(){\n\
+\n\
+\n\
+  if( this.isRunning) {\n\
+\n\
+    /*if(this.rafId) {\n\
+      raf.cancel( this.rafId);\n\
+    }\n\
+*/\n\
+    this.rafId = raf(this.render);\n\
+  }\n\
 \n\
   this.renderer.autoClearColor = false;\n\
 \n\
@@ -1363,13 +1377,21 @@ p.render = function(){\n\
   this.composer.toScreen();\n\
   //this.renderer.render(this.scene, this.camera);\n\
 \n\
+  //this.lon += 1;\n\
+\n\
   this.lat = Math.max( - 85, Math.min( 85, this.lat ) );\n\
   this.phi = ( 90 - this.lat ) * Math.PI / 180;\n\
   this.theta = this.lon * Math.PI / 180;\n\
 \n\
-  this.target.x = 500 * Math.sin( this.phi ) * Math.cos( this.theta );\n\
-  this.target.y = 500 * Math.cos( this.phi );\n\
-  this.target.z = 500 * Math.sin( this.phi ) * Math.sin( this.theta );\n\
+  this.updatedTarget.set(\n\
+    500 * Math.sin( this.phi ) * Math.cos( this.theta ),\n\
+    500 * Math.cos( this.phi ),\n\
+    500 * Math.sin( this.phi ) * Math.sin( this.theta )\n\
+\n\
+  )\n\
+\n\
+  this.target.lerp(this.updatedTarget,1);\n\
+\n\
 \n\
   this.target.x += Math.cos(this.time*2)*10;\n\
   this.target.y += Math.cos(this.time*2)*10;\n\
@@ -1378,14 +1400,9 @@ p.render = function(){\n\
 \n\
   this.time += 0.01;\n\
 \n\
-  if( this.isRunning) {\n\
 \n\
-    /*if(this.rafId) {\n\
-      raf.cancel( this.rafId);\n\
-    }\n\
-*/\n\
-    this.rafId = raf(this.render);\n\
-  }\n\
+  //console.log(delta);\n\
+\n\
 }\n\
 \n\
 p.testMouseOverObjects = function(){\n\
@@ -1596,6 +1613,8 @@ pano.on('panoLinkClicked', function(id,description){\n\
 \n\
 function backToMap() {\n\
 \n\
+\n\
+\n\
   if( pano.isRunning ) {\n\
     pano.once('transitionOutComplete', function(){\n\
       showMap();\n\
@@ -1609,6 +1628,7 @@ function backToMap() {\n\
   }\n\
 \n\
   function showMap() {\n\
+    draggingInstance.enable();\n\
     $map.fadeIn();\n\
     $intro.fadeIn();\n\
     $dragHideLayers.fadeIn();\n\
@@ -1618,7 +1638,7 @@ function backToMap() {\n\
 \n\
 }\n\
 \n\
-Draggable.create($pegman, {\n\
+var draggingInstance = Draggable.create($pegman, {\n\
   type:\"x,y\",\n\
   edgeResistance:0.5,\n\
   throwProps:true,\n\
@@ -1628,7 +1648,9 @@ Draggable.create($pegman, {\n\
   onDrag:onDragPegman\n\
 });\n\
 \n\
+\n\
 function onDragPegman(event) {\n\
+\n\
   var offset = $pegman.offset(),\n\
   bounds = map.getBounds(),\n\
   neLatlng = bounds.getNorthEast(),\n\
@@ -1731,6 +1753,7 @@ function onEndDragPegman( event ){\n\
 \n\
   _panoLoader.load(new google.maps.LatLng(lat,lng));\n\
 \n\
+  draggingInstance.disable();\n\
 \n\
 }\n\
 \n\
@@ -1882,7 +1905,7 @@ el.addEventListener( 'click', function( event ) {\n\
 }, false );\n\
 \n\
 \n\
-document.getElementById(\"address\").focus();\n\
+//document.getElementById(\"address\").focus();\n\
 \n\
 function findAddress( address ) {\n\
 \n\
@@ -2025,6 +2048,7 @@ onResize();\n\
     pano.onResize(w,h);\n\
 \n\
  }\n\
+\n\
 \n\
 //@ sourceURL=urbanjungle/static/app/index.js"
 ));
