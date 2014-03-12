@@ -797,8 +797,8 @@ p.init3D = function(){\n\
 \n\
   var params = {\n\
     uniforms:  groundMaskUniforms,\n\
-    vertexShader: require('./water_vs.glsl'),\n\
-    fragmentShader: require('./water_fs.glsl'),\n\
+    vertexShader: require('./streetview_vs.glsl'),\n\
+    fragmentShader: require('./streetview_fs.glsl'),\n\
     side: THREE.DoubleSide,\n\
     transparent:true,\n\
     lights: false\n\
@@ -1462,7 +1462,7 @@ p.onResize  = function( w, h) {\n\
 }\n\
 //@ sourceURL=streetview/index.js"
 ));
-require.register("streetview/water_vs.glsl", Function("exports, require, module",
+require.register("streetview/streetview_vs.glsl", Function("exports, require, module",
 "module.exports = '// switch on high precision floats\\n\
 varying vec4 mPosition;\\n\
 varying vec2 vUv;\\n\
@@ -1477,9 +1477,9 @@ void main() {\\n\
   gl_Position = projectionMatrix * mvPosition;\\n\
 \\n\
 }\\n\
-';//@ sourceURL=streetview/water_vs.glsl"
+';//@ sourceURL=streetview/streetview_vs.glsl"
 ));
-require.register("streetview/water_fs.glsl", Function("exports, require, module",
+require.register("streetview/streetview_fs.glsl", Function("exports, require, module",
 "module.exports = 'varying vec4 mPosition;\\n\
 uniform sampler2D texture0;\\n\
 uniform sampler2D texture1;\\n\
@@ -1519,7 +1519,7 @@ void main() {\\n\
   //gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\\n\
 \\n\
 }\\n\
-';//@ sourceURL=streetview/water_fs.glsl"
+';//@ sourceURL=streetview/streetview_fs.glsl"
 ));
 require.register("urbanjungle/static/app/index.js", Function("exports, require, module",
 "'use strict';\n\
@@ -1532,7 +1532,7 @@ var _depthLoader = new GSVPANO.PanoDepthLoader();\n\
 \n\
 var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);\n\
 var currentPanoLocation = null;\n\
-\n\
+var draggingInstance;\n\
 var mouse2d = new google.maps.Point();\n\
 var pegmanTimeout;\n\
 var depthCanvas;\n\
@@ -1638,7 +1638,7 @@ function backToMap() {\n\
 \n\
 }\n\
 \n\
-var draggingInstance = Draggable.create($pegman, {\n\
+draggingInstance = Draggable.create($pegman, {\n\
   type:\"x,y\",\n\
   edgeResistance:0.5,\n\
   throwProps:true,\n\
@@ -1646,7 +1646,7 @@ var draggingInstance = Draggable.create($pegman, {\n\
   onDragStart:onStartDragPegman,\n\
   onDragEnd:onEndDragPegman,\n\
   onDrag:onDragPegman\n\
-});\n\
+})[0];\n\
 \n\
 \n\
 function onDragPegman(event) {\n\

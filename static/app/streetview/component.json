@@ -10,8 +10,8 @@
     "map.css"
   ],
   "strings": [
-    "water_vs.glsl",
-    "water_fs.glsl"
+    "streetview_vs.glsl",
+    "streetview_fs.glsl"
   ],
   "dependencies": {
     "component/raf": "*",

@@ -8,7 +8,7 @@ var _depthLoader = new GSVPANO.PanoDepthLoader();
 
 var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);
 var currentPanoLocation = null;
-
+var draggingInstance;
 var mouse2d = new google.maps.Point();
 var pegmanTimeout;
 var depthCanvas;
@@ -114,7 +114,7 @@ function backToMap() {
 
 }
 
-var draggingInstance = Draggable.create($pegman, {
+draggingInstance = Draggable.create($pegman, {
   type:"x,y",
   edgeResistance:0.5,
   throwProps:true,
@@ -122,7 +122,7 @@ var draggingInstance = Draggable.create($pegman, {
   onDragStart:onStartDragPegman,
   onDragEnd:onEndDragPegman,
   onDrag:onDragPegman
-});
+})[0];
 
 
 function onDragPegman(event) {

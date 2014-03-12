@@ -298,8 +298,8 @@ p.init3D = function(){
 
   var params = {
     uniforms:  groundMaskUniforms,
-    vertexShader: require('./water_vs.glsl'),
-    fragmentShader: require('./water_fs.glsl'),
+    vertexShader: require('./streetview_vs.glsl'),
+    fragmentShader: require('./streetview_fs.glsl'),
     side: THREE.DoubleSide,
     transparent:true,
     lights: false
