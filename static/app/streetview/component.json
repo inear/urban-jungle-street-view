@@ -1,10 +1,16 @@
 {
   "name": "streetview",
   "main": "index.js",
+  "paths": [
+
+  ],
+  "local": [
+
+  ],
   "scripts": [
     "nav.js",
-    "index.js"
-
+    "index.js",
+    "utils/detector.js"
   ],
   "styles": [
     "map.css"
