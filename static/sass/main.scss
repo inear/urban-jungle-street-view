@@ -387,7 +387,10 @@ aside.sticker {
   height: 100px;
   display: inline-block;
   border-radius: 100%;
-  background: -webkit-linear-gradient(135deg, transparent 32px, #aaa 20px, #eee);
+  background-image: -webkit-linear-gradient(135deg, transparent 32px, #aaaaaa 20px, #eeeeee);
+  background-image: -moz-linear-gradient(135deg, transparent 32px, #aaaaaa 20px, #eeeeee);
+  background-image: -o-linear-gradient(135deg, transparent 32px, #aaaaaa 20px, #eeeeee);
+
   text-align: center;
   padding-top: 40px;
   box-sizing: border-box;
@@ -398,8 +401,11 @@ aside.sticker:after {
   content: " ";
   display: block;
   border-radius: 100%;
-  background: -webkit-linear-gradient(135deg, transparent 110px, #000 100px,#666 100px, #fff 85%);
-  box-shadow: -3px -3px 15px 1px rgba(0, 0, 0, 0.2);
+  background-image: -webkit-linear-gradient(135deg, transparent 110px, #000000 100px, #666666 100px, #ffffff 85%);
+  background-image: -moz-linear-gradient(135deg, transparent 110px, #000000 100px, #666666 100px, #ffffff 85%);
+  background-image: -o-linear-gradient(135deg, transparent 110px, #000000 100px, #666666 100px, #ffffff 85%);
+
+  @include box-shadow( -3px -3px 15px 1px rgba(0, 0, 0, 0.2));
   width: 100px;
   height: 100px;
   margin-left: 56px;
@@ -408,7 +414,9 @@ aside.sticker:after {
 
 aside.sticker.green {
   color: white;
-  background: -webkit-linear-gradient(135deg, transparent 32px, #46a82d 20px, #70c757);
+  background-image: -webkit-linear-gradient(135deg, transparent 32px, #46a82d 20px, #70c757);
+  background-image: -moz-linear-gradient(135deg, transparent 32px, #46a82d 20px, #70c757);
+  background-image: -o-linear-gradient(135deg, transparent 32px, #46a82d 20px, #70c757);
 }
 
 .info-block {

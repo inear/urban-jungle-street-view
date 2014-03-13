@@ -101,7 +101,7 @@
 .triangle-border.left:after {
   top:16px; /* value = (:before top) + (:before border-top) - (:after border-top) */
   bottom:auto;
-  left:-21px; /* value = - border-left-width - border-right-width */
+  left:-16px; /* value = - border-left-width - border-right-width */
   border-width:9px 21px 9px 0;
   border-color:transparent #fff;
 }
