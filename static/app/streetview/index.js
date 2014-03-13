@@ -422,11 +422,11 @@ p.onContainerMouseMove = function( event ) {
 
   this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;
   this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;
-
+/*
   delta = Date.now()-lastTime;
   lastTime = Date.now();
   $('#debug').text( delta );
-
+*/
 }
 
 p.onContainerMouseUp = function( event ) {
