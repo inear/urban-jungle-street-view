@@ -14,7 +14,7 @@ var pegmanTimeout;
 var depthCanvas;
 var normalCanvas;
 
-var TALK_DEFAULT = 'Choose your location<br>and pick me up!';
+var TALK_DEFAULT = 'Choose your location, pan around, and then pick me up!';
 
 var $pegman = $('#pegman');
 var $pegmanCircle = $('.js-pegman-circle');

@@ -204,7 +204,7 @@
   top:45%;
 
   margin-left:-185px;
-  @include perspective(100px);
+  @include perspective(150px);
 
   .pegman-circle {
     position:absolute;
@@ -212,7 +212,7 @@
     border: 2px solid white;
     width:100px;
     height:100px;
-    @include transform(rotateX(55deg));
+    @include transform(rotateX(75deg));
 
     @include transition-property(all);
     @include transition-duration(0.2s);
