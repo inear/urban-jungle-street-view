@@ -203,7 +203,7 @@
     border: 2px solid white;
     width:100px;
     height:100px;
-    @include transform(rotateX(65deg));
+    @include transform(rotateX(55deg));
 
     @include transition-property(all);
     @include transition-duration(0.2s);

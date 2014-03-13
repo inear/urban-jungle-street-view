@@ -158,12 +158,12 @@ function onDragPegman(event) {
   var worldCoordinate = proj.fromLatLngToPoint( new google.maps.LatLng(lat,lng));
 
   var pixelCoordinate = new google.maps.Point(
-          worldCoordinate.x * numTiles,
-          worldCoordinate.y * numTiles);
+    worldCoordinate.x * numTiles,
+    worldCoordinate.y * numTiles);
 
   var tileCoordinate = new google.maps.Point(
-      Math.floor(pixelCoordinate.x / TILE_SIZE),
-      Math.floor(pixelCoordinate.y / TILE_SIZE));
+    Math.floor(pixelCoordinate.x / TILE_SIZE),
+    Math.floor(pixelCoordinate.y / TILE_SIZE));
 
   //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);
 
@@ -181,11 +181,16 @@ function onDragPegman(event) {
       //get pixel
       var index = (Math.floor(localPixel.y) * 256 + Math.floor(localPixel.x)) * 4;
       var trans = streetViewTileData[index];
+      var blue = streetViewTileData[index-1]
+      var validColor = false;
 
-      if(trans > 0 && !$pegman.hasClass('over-road')) {
+      if( trans > 0 && blue === 132 ) {
+        validColor = true;
+      }
+      if( validColor && !$pegman.hasClass('over-road')) {
         $pegman.addClass('over-road');
       }
-      else if( trans === 0 && $pegman.hasClass('over-road')){
+      else if( !validColor && $pegman.hasClass('over-road')){
         $pegman.removeClass('over-road');
       }
     }

@@ -1814,12 +1814,12 @@ function onDragPegman(event) {\n\
   var worldCoordinate = proj.fromLatLngToPoint( new google.maps.LatLng(lat,lng));\n\
 \n\
   var pixelCoordinate = new google.maps.Point(\n\
-          worldCoordinate.x * numTiles,\n\
-          worldCoordinate.y * numTiles);\n\
+    worldCoordinate.x * numTiles,\n\
+    worldCoordinate.y * numTiles);\n\
 \n\
   var tileCoordinate = new google.maps.Point(\n\
-      Math.floor(pixelCoordinate.x / TILE_SIZE),\n\
-      Math.floor(pixelCoordinate.y / TILE_SIZE));\n\
+    Math.floor(pixelCoordinate.x / TILE_SIZE),\n\
+    Math.floor(pixelCoordinate.y / TILE_SIZE));\n\
 \n\
   //console.log('TileX:' +tileCoordinate.x+' - TileY:'+tileCoordinate.y);\n\
 \n\
@@ -1837,11 +1837,16 @@ function onDragPegman(event) {\n\
       //get pixel\n\
       var index = (Math.floor(localPixel.y) * 256 + Math.floor(localPixel.x)) * 4;\n\
       var trans = streetViewTileData[index];\n\
+      var blue = streetViewTileData[index-1]\n\
+      var validColor = false;\n\
 \n\
-      if(trans > 0 && !$pegman.hasClass('over-road')) {\n\
+      if( trans > 0 && blue === 132 ) {\n\
+        validColor = true;\n\
+      }\n\
+      if( validColor && !$pegman.hasClass('over-road')) {\n\
         $pegman.addClass('over-road');\n\
       }\n\
-      else if( trans === 0 && $pegman.hasClass('over-road')){\n\
+      else if( !validColor && $pegman.hasClass('over-road')){\n\
         $pegman.removeClass('over-road');\n\
       }\n\
     }\n\
