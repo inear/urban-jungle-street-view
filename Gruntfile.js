@@ -104,6 +104,7 @@ module.exports = function(grunt) {
       // localhost:4000
       dev: {
         options: {
+          hostname: '*',
           port: 4040,
           base: 'static'
         }
@@ -148,7 +149,8 @@ module.exports = function(grunt) {
         files: [{
           expand: true,
           filter: 'isFile',
-          src: ['static/assets/**'],
+          cwd: 'static/',
+          src: ['assets/**'],
           dest: 'prod'
         }]
       }
@@ -161,13 +163,13 @@ module.exports = function(grunt) {
         }
       },
       html: {
-        src: 'index.html',
+        src: 'static/index.html',
         dest: 'prod/index.html'
       }
     },
 
     useminPrepare: {
-      html: 'index.html',
+      html: 'static/index.html',
       options: {
         dest: 'prod'
       }
@@ -205,7 +207,7 @@ module.exports = function(grunt) {
     'preprocess',
     'useminPrepare',
     'concat',
-    'uglify',
+    //'uglify',
     'usemin',
   ]);
 

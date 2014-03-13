@@ -1,10 +1,10 @@
-http_path = "/"
-http_images_path = "images"
+http_path = "http://inear.se/urbanjungle/"
+http_images_path = "http://inear.se/urbanjungle/assets/images"
 css_dir = "prod/css"
 sass_dir = "static/sass"
-images_dir = "static/images"
+images_dir = "static/assets/images"
 javascripts_dir = "static/app"
-fonts_dir = "static/fonts"
+fonts_dir = "static/assets/fonts"
 
 relative_assets = false
 output_style = :compressed
