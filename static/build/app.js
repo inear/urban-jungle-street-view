@@ -875,7 +875,7 @@ p.initEvents = function(){\n\
 \n\
   this.container.addEventListener( 'touchstart', this.onContainerTouchStart, false );\n\
   this.container.addEventListener( 'touchend', this.onContainerTouchEnd, false );\n\
-  this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );\n\
+  //this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );\n\
   this.container.addEventListener( 'touchmove', this.onContainerTouchMove, false );\n\
 }\n\
 \n\
@@ -887,7 +887,7 @@ p.removeEvents = function(){\n\
 \n\
   this.container.removeEventListener( 'touchstart', this.onContainerTouchStart );\n\
   this.container.removeEventListener( 'touchend', this.onContainerTouchEnd );\n\
-  this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );\n\
+  //this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );\n\
   this.container.removeEventListener( 'touchmove', this.onContainerTouchMove );\n\
 }\n\
 \n\
@@ -966,8 +966,13 @@ p.onContainerTouchStart = function( event ) {\n\
 }\n\
 \n\
 p.onContainerTouchEnd = function( event ){\n\
+\n\
+  event.preventDefault();\n\
+\n\
   this.isUserInteracting = false;\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
+    event.clientX = event.touches[ 0 ].pageX;\n\
+    event.clientY = event.touches[ 0 ].pageY;\n\
     this.onSceneClick(event);\n\
   }\n\
 }\n\

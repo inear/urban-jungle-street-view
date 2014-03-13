@@ -376,7 +376,7 @@ p.initEvents = function(){
 
   this.container.addEventListener( 'touchstart', this.onContainerTouchStart, false );
   this.container.addEventListener( 'touchend', this.onContainerTouchEnd, false );
-  this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );
+  //this.container.addEventListener( 'touchcancel', this.onContainerTouchEnd, false );
   this.container.addEventListener( 'touchmove', this.onContainerTouchMove, false );
 }
 
@@ -388,7 +388,7 @@ p.removeEvents = function(){
 
   this.container.removeEventListener( 'touchstart', this.onContainerTouchStart );
   this.container.removeEventListener( 'touchend', this.onContainerTouchEnd );
-  this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );
+  //this.container.removeEventListener( 'touchcancel', this.onContainerTouchEnd );
   this.container.removeEventListener( 'touchmove', this.onContainerTouchMove );
 }
 
@@ -467,8 +467,13 @@ p.onContainerTouchStart = function( event ) {
 }
 
 p.onContainerTouchEnd = function( event ){
+
+  event.preventDefault();
+
   this.isUserInteracting = false;
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
+    event.clientX = event.touches[ 0 ].pageX;
+    event.clientY = event.touches[ 0 ].pageY;
     this.onSceneClick(event);
   }
 }

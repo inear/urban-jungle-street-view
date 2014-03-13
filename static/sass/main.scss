@@ -320,7 +320,7 @@
 
 .back-btn {
   position: absolute;
-
+  z-index:100000;
   font-family: $ui-font;
   font-weight:400;
   font-size:12px;
