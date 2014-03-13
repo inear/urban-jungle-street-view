@@ -412,10 +412,11 @@ aside.sticker.green {
 .info-block {
   display:none;
   position:absolute;
-  z-index:12;
+  z-index:10000;
   height:100%;
   width:100%;
   text-align: center;
+  @include transform(translateZ(10px));
 
   &:before {
     content: '';
