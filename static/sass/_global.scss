@@ -1,3 +1,7 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,600,300);
+@import url(http://fonts.googleapis.com/css?family=Fjalla+One);
+$header-font: 'Fjalla One',sans-serif;
+$ui-font: 'Open Sans';
 // ---- Cursors ----
 
 .grab {
@@ -82,8 +86,8 @@ html,body {
   width:100%;
   overflow:hidden;
 
-  font-family: 'Source Sans Pro', sans-serif;
-  font-weight:400;
+  /*font-family: 'Source Sans Pro', sans-serif;*/
+  font-weight:100;
 }
 
 .fullvp {
@@ -109,4 +113,11 @@ html,body {
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+}
+
+
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }

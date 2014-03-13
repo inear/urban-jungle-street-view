@@ -78,6 +78,14 @@ $('#choice-location').on('click', function(){
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
 })
 
+$('.js-more-info').on('click', function(){
+  $('#info').show();
+})
+
+$('.js-close-info').on('click', function(){
+  $('#info').hide();
+})
+
 $('.js-intro').removeClass('inactive');
 
 pano.on('panoLinkClicked', function(id,description){

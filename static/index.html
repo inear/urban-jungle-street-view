@@ -19,6 +19,33 @@
 
 </head>
 <body>
+
+  <aside class="js-more-info more-info sticker green">Info</aside>
+
+  <div id="info" class="info-block">
+    <div class="info-content">
+      <div class="js-close-info close">
+        <div class="close-cross"></div>
+      </div>
+      <h1></h1>
+      <p><img src="assets/images/pegman.png" align="left">Visit any place available in Street View by entering your location, drag the map and drop the little guy on a street. It works best in environment with large buildings surrounding the streets.Some locations need a little more imagination than others.</p>
+      <p>This experiment using a undocumented part of Street View, the depth data, to transform the world into a greener place. With that a depth map and a normal map is generated, which can be used to plot geometry and sprites in (almost) the correct position in 3d space. The panorama shader also uses the normal texture to replace the ground with a different texture.</p>
+      <p>
+      Tech used in the demo:
+      <ul>
+        <li>Streetview panorama loading logic and UI inspiration from <a href="http://twitter.com/thespite" targe="_blank">@thespite</a> <a href="http://www.clicktorelease.com/code/street/" target="_blank">http://www.clicktorelease.com/code/street/</a>
+        <li>Post effects composer for three.js called Wagner from @thespite <a href="https://github.com/spite/Wagner" target="_blank">https://github.com/spite/Wagner</a>
+        <li><a href="https://github.com/proog128/GSVPanoDepth.js/tree/master" target="_blank">GSVPanoDepth</a> to parse the depth data to a depthmap.
+        <li>Three.js for fancy 3d, <a href="http://threejs.org" target="_blank">http://threejs.org</a>
+        <li>GreenSock GSAP, Draggable for animations and interaction.
+        <li>A html-tag and some divs.
+      </ul></p>
+      <p>
+      If you like this, there is more demos and write-ups at: <a href="http://inear.se" target="_blank">inear.se</a> or just follow me on Twitter: <a href="http://twitter.com/inear" target="_blank">twitter.com/inear</a>
+      </p>
+    </div>
+  </div>
+
   <div id="app" class="streetview">
     <div id="backToMap" class="back-btn">BACK TO MAP</div>
   </div>
@@ -40,6 +67,7 @@
     <div class="intro-content js-intro-content">
 
       <h1 class="js-intro-header intro-header js-drag-hide">Urban Jungle Streetview</h1>
+
       <div class="choice-list js-drag-hide">
         <div id="choice-default-1" class="choice-item">New York</div>
         <div id="choice-default-2" class="choice-item">San Francisco</div>
@@ -52,10 +80,10 @@
       </span>
       </div>
 
-      <!--<div class="start-btn js-start-btn js-drag-hide">Loading</div>-->
-
     </div>
   </div>
+
+
 
 
   <div class="vAlign-center loading-label js-loading-label inactive">

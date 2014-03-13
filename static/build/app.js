@@ -1734,6 +1734,14 @@ $('#choice-location').on('click', function(){\n\
   navigator.geolocation.getCurrentPosition( geoSuccess, geoError );\n\
 })\n\
 \n\
+$('.js-more-info').on('click', function(){\n\
+  $('#info').show();\n\
+})\n\
+\n\
+$('.js-close-info').on('click', function(){\n\
+  $('#info').hide();\n\
+})\n\
+\n\
 $('.js-intro').removeClass('inactive');\n\
 \n\
 pano.on('panoLinkClicked', function(id,description){\n\
