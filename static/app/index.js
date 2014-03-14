@@ -46,7 +46,7 @@ var pano = new Pano();
 
 pegmanTalk(TALK_DEFAULT);
 
-$('#backToMap').on('click', function(){
+$('#backToMap').on('click touchstart', function(){
 
   pegmanTalk(TALK_DEFAULT);
 

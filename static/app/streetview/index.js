@@ -187,7 +187,7 @@ p.createPlants = function(){
 
   var created = false;
 
-  var totalPlants = 200;
+  var totalPlants = detector.isMobile?100:200;
   for (var i = 0; i < totalPlants; i++) {
     var point = this.get3DPointFromUV(0.35 + 0.3*Math.random(),1/totalPlants*i);
 
@@ -202,7 +202,7 @@ p.createPlants = function(){
 
   };
 
-  totalPlants = 200;
+  totalPlants = detector.isMobile?100:200;;
   for (var i = 0; i < totalPlants; i++) {
     var point = this.get3DPointFromUV(0.55 + 0.3*Math.random(),0.4 + 1/totalPlants*i*0.2);
 
@@ -220,7 +220,7 @@ p.createPlants = function(){
 
 
 p.createEdgeFoliage = function(){
-  var totalPlants = MAP_WIDTH/4;
+  var totalPlants = MAP_WIDTH/detector.isMobile?8:4;
   var normal = new THREE.Vector3(0,-1,0);
   var created = false;
   for (var i = 0; i < totalPlants; i++) {
@@ -242,7 +242,7 @@ p.createEdgeFoliage = function(){
 }
 
 p.createClimbingFoliages = function(){
-  var divider = 16;
+  var divider = detector.isMobile?32:16;
   var totalPlants = MAP_WIDTH/divider;
   var normal = new THREE.Vector3(0,-1,0);
   var created = false;
@@ -435,7 +435,7 @@ p.onContainerMouseMove = function( event ) {
 p.onContainerMouseUp = function( event ) {
   this.isUserInteracting = false;
 
-  if( Date.now()- this.isUserInteractingTime  < 300 ) {
+  if( Date.now()- this.isUserInteractingTime < 300 ) {
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);
   }
 
@@ -477,6 +477,7 @@ p.onContainerTouchEnd = function( event ){
   //event.preventDefault();
 
   this.isUserInteracting = false;
+
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);
   }
@@ -867,7 +868,9 @@ p.render = function(){
 
   this.composer.render( this.scene, this.camera );
 
+
   this.composer.pass( this.dirtPass );
+
 
   if( this.fadeAmount ) {
     this.composer.pass( this.blurPass, null, this.fadeAmount*50 );

@@ -686,7 +686,7 @@ p.createPlants = function(){\n\
 \n\
   var created = false;\n\
 \n\
-  var totalPlants = 200;\n\
+  var totalPlants = detector.isMobile?100:200;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
     var point = this.get3DPointFromUV(0.35 + 0.3*Math.random(),1/totalPlants*i);\n\
 \n\
@@ -701,7 +701,7 @@ p.createPlants = function(){\n\
 \n\
   };\n\
 \n\
-  totalPlants = 200;\n\
+  totalPlants = detector.isMobile?100:200;;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
     var point = this.get3DPointFromUV(0.55 + 0.3*Math.random(),0.4 + 1/totalPlants*i*0.2);\n\
 \n\
@@ -719,7 +719,7 @@ p.createPlants = function(){\n\
 \n\
 \n\
 p.createEdgeFoliage = function(){\n\
-  var totalPlants = MAP_WIDTH/4;\n\
+  var totalPlants = MAP_WIDTH/detector.isMobile?8:4;\n\
   var normal = new THREE.Vector3(0,-1,0);\n\
   var created = false;\n\
   for (var i = 0; i < totalPlants; i++) {\n\
@@ -741,7 +741,7 @@ p.createEdgeFoliage = function(){\n\
 }\n\
 \n\
 p.createClimbingFoliages = function(){\n\
-  var divider = 16;\n\
+  var divider = detector.isMobile?32:16;\n\
   var totalPlants = MAP_WIDTH/divider;\n\
   var normal = new THREE.Vector3(0,-1,0);\n\
   var created = false;\n\
@@ -934,7 +934,7 @@ p.onContainerMouseMove = function( event ) {\n\
 p.onContainerMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
 \n\
-  if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
+  if( Date.now()- this.isUserInteractingTime < 300 ) {\n\
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);\n\
   }\n\
 \n\
@@ -976,6 +976,7 @@ p.onContainerTouchEnd = function( event ){\n\
   //event.preventDefault();\n\
 \n\
   this.isUserInteracting = false;\n\
+\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);\n\
   }\n\
@@ -1366,7 +1367,9 @@ p.render = function(){\n\
 \n\
   this.composer.render( this.scene, this.camera );\n\
 \n\
+\n\
   this.composer.pass( this.dirtPass );\n\
+\n\
 \n\
   if( this.fadeAmount ) {\n\
     this.composer.pass( this.blurPass, null, this.fadeAmount*50 );\n\
@@ -1711,7 +1714,7 @@ var pano = new Pano();\n\
 \n\
 pegmanTalk(TALK_DEFAULT);\n\
 \n\
-$('#backToMap').on('click', function(){\n\
+$('#backToMap').on('click touchstart', function(){\n\
 \n\
   pegmanTalk(TALK_DEFAULT);\n\
 \n\

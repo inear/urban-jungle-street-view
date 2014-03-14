@@ -335,6 +335,8 @@
   margin: 20px;
   color: #ffffff;
 
+  @include backface-visibility(hidden);
+
   &:hover {
     background:rgba(255,255,255,0.1);
   }
