@@ -235,8 +235,9 @@
       @include transition-property(all);
       @include transition-duration(0.2s);
       @include transition-timing-function(ease-in);
-      @include transform(scale(0.8) translateX(-40px));
+
       width:200px;
+
     }
 
     .pegman-circle {
@@ -297,10 +298,10 @@
 .instructions {
   position: absolute;
   font-family: $ui-font;
-  font-size: 14px;
+  font-size:15px;
   font-weight:400;
   top: -30px;
-  left: 80px;
+  left: 50px;
   width: 276px;
   text-align:center;
 

@@ -993,7 +993,6 @@ p.onContainerTouchMove = function( event ) {\n\
     this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;\n\
     this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;\n\
 \n\
-\n\
   }\n\
 \n\
 }\n\
