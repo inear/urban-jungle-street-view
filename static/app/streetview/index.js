@@ -405,6 +405,9 @@ p.onContainerMouseDown = function( event ) {
   this.onPointerDownLon = this.lon;
   this.onPointerDownLat = this.lat;
 
+  this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;
+  this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;
+
   $('body').removeClass('grab').addClass('grabbing');
 
 }
@@ -433,7 +436,7 @@ p.onContainerMouseUp = function( event ) {
   this.isUserInteracting = false;
 
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
-    this.onSceneClick(event);
+    this.onSceneClick(this.mouse2d.x,this.mouse2d.y);
   }
 
   $('body').removeClass('grabbing').addClass('grab');
@@ -459,6 +462,9 @@ p.onContainerTouchStart = function( event ) {
     this.onPointerDownPointerX = event.touches[ 0 ].pageX;
     this.onPointerDownPointerY = event.touches[ 0 ].pageY;
 
+    this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;
+    this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;
+
     this.onPointerDownLon = this.lon;
     this.onPointerDownLat = this.lat;
 
@@ -472,9 +478,8 @@ p.onContainerTouchEnd = function( event ){
 
   this.isUserInteracting = false;
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
-    event.clientX = event.touches[ 0 ].pageX;
-    event.clientY = event.touches[ 0 ].pageY;
-    this.onSceneClick(event);
+
+    this.onSceneClick(this.mouse2d.x,this.mouse2d.y);
   }
 }
 
@@ -490,13 +495,14 @@ p.onContainerTouchMove = function( event ) {
     this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;
     this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;
 
+
   }
 
 }
 
-p.onSceneClick = function(event){
-
-  var vector = new THREE.Vector3((event.clientX / this.winSize.width) * 2 - 1, -(event.clientY / this.winSize.height) * 2 + 1, 0.5);
+p.onSceneClick = function(x,y){
+  console.log(x,y)
+  var vector = new THREE.Vector3(x, y, 0.5);
   var projector = new THREE.Projector();
   projector.unprojectVector(vector, this.camera);
 

@@ -904,6 +904,9 @@ p.onContainerMouseDown = function( event ) {\n\
   this.onPointerDownLon = this.lon;\n\
   this.onPointerDownLat = this.lat;\n\
 \n\
+  this.mouse2d.x = ( event.clientX / this.winSize.width ) * 2 - 1;\n\
+  this.mouse2d.y = - ( event.clientY / this.winSize.height ) * 2 + 1;\n\
+\n\
   $('body').removeClass('grab').addClass('grabbing');\n\
 \n\
 }\n\
@@ -932,7 +935,7 @@ p.onContainerMouseUp = function( event ) {\n\
   this.isUserInteracting = false;\n\
 \n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
-    this.onSceneClick(event);\n\
+    this.onSceneClick(this.mouse2d.x,this.mouse2d.y);\n\
   }\n\
 \n\
   $('body').removeClass('grabbing').addClass('grab');\n\
@@ -958,6 +961,9 @@ p.onContainerTouchStart = function( event ) {\n\
     this.onPointerDownPointerX = event.touches[ 0 ].pageX;\n\
     this.onPointerDownPointerY = event.touches[ 0 ].pageY;\n\
 \n\
+    this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;\n\
+    this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;\n\
+\n\
     this.onPointerDownLon = this.lon;\n\
     this.onPointerDownLat = this.lat;\n\
 \n\
@@ -971,9 +977,8 @@ p.onContainerTouchEnd = function( event ){\n\
 \n\
   this.isUserInteracting = false;\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
-    event.clientX = event.touches[ 0 ].pageX;\n\
-    event.clientY = event.touches[ 0 ].pageY;\n\
-    this.onSceneClick(event);\n\
+\n\
+    this.onSceneClick(this.mouse2d.x,this.mouse2d.y);\n\
   }\n\
 }\n\
 \n\
@@ -989,13 +994,14 @@ p.onContainerTouchMove = function( event ) {\n\
     this.mouse2d.x = ( event.touches[0].pageX / this.winSize.width ) * 2 - 1;\n\
     this.mouse2d.y = - ( event.touches[0].pageY / this.winSize.height ) * 2 + 1;\n\
 \n\
+\n\
   }\n\
 \n\
 }\n\
 \n\
-p.onSceneClick = function(event){\n\
-\n\
-  var vector = new THREE.Vector3((event.clientX / this.winSize.width) * 2 - 1, -(event.clientY / this.winSize.height) * 2 + 1, 0.5);\n\
+p.onSceneClick = function(x,y){\n\
+  console.log(x,y)\n\
+  var vector = new THREE.Vector3(x, y, 0.5);\n\
   var projector = new THREE.Projector();\n\
   projector.unprojectVector(vector, this.camera);\n\
 \n\
