@@ -16,6 +16,7 @@ var normalCanvas;
 
 var TALK_DEFAULT = 'Choose your location, pan around, and then pick me up!';
 
+var $streetview = $('.streetview');
 var $pegman = $('#pegman');
 var $pegmanCircle = $('.js-pegman-circle');
 var $map = $('#map');
@@ -115,6 +116,7 @@ function backToMap() {
   }
 
   function showMap() {
+    $streetview.addClass('inactive');
     draggingInstance.enable();
     $map.fadeIn();
     $intro.fadeIn();
@@ -512,6 +514,7 @@ _depthLoader.onDepthLoad = function( buffers ) {
 
   pano.generateNature();
   pano.start();
+  $streetview.removeClass('inactive');
 
   if( !pano.isIntro ) {
     TweenMax.to($loadingLabel,1,{opacity:0});

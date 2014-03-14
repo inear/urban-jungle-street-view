@@ -973,11 +973,10 @@ p.onContainerTouchStart = function( event ) {\n\
 \n\
 p.onContainerTouchEnd = function( event ){\n\
 \n\
-  event.preventDefault();\n\
+  //event.preventDefault();\n\
 \n\
   this.isUserInteracting = false;\n\
   if( Date.now()- this.isUserInteractingTime  < 300 ) {\n\
-\n\
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);\n\
   }\n\
 }\n\
@@ -1000,7 +999,7 @@ p.onContainerTouchMove = function( event ) {\n\
 }\n\
 \n\
 p.onSceneClick = function(x,y){\n\
-  console.log(x,y)\n\
+\n\
   var vector = new THREE.Vector3(x, y, 0.5);\n\
   var projector = new THREE.Projector();\n\
   projector.unprojectVector(vector, this.camera);\n\
@@ -1683,6 +1682,7 @@ var normalCanvas;\n\
 \n\
 var TALK_DEFAULT = 'Choose your location, pan around, and then pick me up!';\n\
 \n\
+var $streetview = $('.streetview');\n\
 var $pegman = $('#pegman');\n\
 var $pegmanCircle = $('.js-pegman-circle');\n\
 var $map = $('#map');\n\
@@ -1782,6 +1782,7 @@ function backToMap() {\n\
   }\n\
 \n\
   function showMap() {\n\
+    $streetview.addClass('inactive');\n\
     draggingInstance.enable();\n\
     $map.fadeIn();\n\
     $intro.fadeIn();\n\
@@ -2179,6 +2180,7 @@ _depthLoader.onDepthLoad = function( buffers ) {\n\
 \n\
   pano.generateNature();\n\
   pano.start();\n\
+  $streetview.removeClass('inactive');\n\
 \n\
   if( !pano.isIntro ) {\n\
     TweenMax.to($loadingLabel,1,{opacity:0});\n\

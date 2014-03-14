@@ -474,11 +474,10 @@ p.onContainerTouchStart = function( event ) {
 
 p.onContainerTouchEnd = function( event ){
 
-  event.preventDefault();
+  //event.preventDefault();
 
   this.isUserInteracting = false;
   if( Date.now()- this.isUserInteractingTime  < 300 ) {
-
     this.onSceneClick(this.mouse2d.x,this.mouse2d.y);
   }
 }
@@ -501,7 +500,7 @@ p.onContainerTouchMove = function( event ) {
 }
 
 p.onSceneClick = function(x,y){
-  console.log(x,y)
+
   var vector = new THREE.Vector3(x, y, 0.5);
   var projector = new THREE.Projector();
   projector.unprojectVector(vector, this.camera);
