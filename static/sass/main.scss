@@ -40,7 +40,7 @@
       @media all and (min-width: 0px) and (max-width:820px) {
         font-size:40px;
         top:10%;
-        width:60%;
+        width:70%;
       }
 
       @media all and (min-width: 821px) and (max-width:1220px) {
@@ -298,11 +298,11 @@
 .instructions {
   position: absolute;
   font-family: $ui-font;
-  font-size:15px;
+  font-size:14px;
   font-weight:400;
   top: -30px;
   left: 50px;
-  width: 276px;
+  width: 296px;
   text-align:center;
 
    @media all and (min-width: 0px) and (max-width:500px) {
@@ -314,8 +314,8 @@
   }
 
   @media all and (min-width: 500px) and (max-width:820px) {
-    width: 200px;
-    font-size: 12px;
+    width: 220px;
+    font-size: 11px;
   }
 }
 
