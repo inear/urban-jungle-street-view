@@ -18,14 +18,16 @@ void main() {
   float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);
   DiffuseTerm = 1.0 - step(DiffuseTerm,0.97);
 
-  //diffuse
-  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;
-  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;
-  vec3 finalDiffuse = diffuseTex0*vec3(0.8,0.9,0.8);
-
 
   //depth
   vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;
+
+  //diffuse
+  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;
+  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;
+  vec3 finalDiffuse = mix(diffuseTex0*vec3(0.8,0.9,0.8),vec3(0.8,0.9,0.8),diffuseTex2*diffuseTex2*0.2);
+
+
 
   float thres = 1.0-step(0.1,diffuseTex1.b);
   //vec4(diffuseTex1,1.0);
