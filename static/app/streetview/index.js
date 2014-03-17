@@ -93,6 +93,11 @@ var p = PanoView.prototype;
 Emitter(p);
 
 p.generateNature = function(){
+
+  if(this.rafId) {
+    raf.cancel( this.rafId);
+  }
+
   this.resetNature();
   this.createEdgeFoliage();
   this.createClimbingFoliages();

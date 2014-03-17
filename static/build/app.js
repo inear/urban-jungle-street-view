@@ -592,6 +592,11 @@ var p = PanoView.prototype;\n\
 Emitter(p);\n\
 \n\
 p.generateNature = function(){\n\
+\n\
+  if(this.rafId) {\n\
+    raf.cancel( this.rafId);\n\
+  }\n\
+\n\
   this.resetNature();\n\
   this.createEdgeFoliage();\n\
   this.createClimbingFoliages();\n\
@@ -1651,7 +1656,8 @@ void main() {\\n\
   //diffuse\\n\
   vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\\n\
   float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\\n\
-  vec3 finalDiffuse = mix(diffuseTex0*vec3(0.8,0.9,0.8),vec3(0.8,0.9,0.8),diffuseTex2*diffuseTex2*0.2);\\n\
+  //vec3 finalDiffuse = mix(diffuseTex0*vec3(0.8,0.9,0.8),vec3(0.8,0.9,0.8),diffuseTex2*diffuseTex2*0.1);\\n\
+  vec3 finalDiffuse = diffuseTex0*vec3(0.8,0.9,0.8);\\n\
 \\n\
 \\n\
 \\n\

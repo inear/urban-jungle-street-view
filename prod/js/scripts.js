@@ -53937,6 +53937,11 @@ var p = PanoView.prototype;
 Emitter(p);
 
 p.generateNature = function(){
+
+  if(this.rafId) {
+    raf.cancel( this.rafId);
+  }
+
   this.resetNature();
   this.createEdgeFoliage();
   this.createClimbingFoliages();
@@ -54955,7 +54960,7 @@ require.register("streetview/streetview_vs.glsl", function(exports, require, mod
 module.exports = '// switch on high precision floats\nvarying vec4 mPosition;\nvarying vec2 vUv;\nuniform float time;\n\nvoid main() {\n\n  mPosition = modelMatrix * vec4(position,1.0);\n\n  vUv = uv;\n  vec4 mvPosition = viewMatrix * mPosition;\n  gl_Position = projectionMatrix * mvPosition;\n\n}\n';
 });
 require.register("streetview/streetview_fs.glsl", function(exports, require, module){
-module.exports = 'varying vec4 mPosition;\nuniform sampler2D texture0;\nuniform sampler2D texture1;\nuniform sampler2D texture2;\nuniform float time;\nvarying vec2 vUv;\n\nuniform vec3 diffuse;\nuniform vec3 fogColor;\nuniform float fogNear;\nuniform float fogFar;\n\nvoid main() {\n\n  //normal\n  vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\n  vec3 normalizedNormal = normalize(diffuseTex1);\n  float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);\n  DiffuseTerm = 1.0 - step(DiffuseTerm,0.97);\n\n  //diffuse\n  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\n  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\n  vec3 finalDiffuse = diffuseTex0*vec3(0.8,0.9,0.8);\n\n\n  //depth\n  vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\n\n  float thres = 1.0-step(0.1,diffuseTex1.b);\n  //vec4(diffuseTex1,1.0);\n  gl_FragColor = vec4( finalDiffuse,1.0-DiffuseTerm*(1.0-diffuseTex2.x));\n\n\n  //float depth = gl_FragCoord.z / gl_FragCoord.w;\n  //float fogFactor = smoothstep( fogNear, fogFar, depth );\n  //gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n\n}\n';
+module.exports = 'varying vec4 mPosition;\nuniform sampler2D texture0;\nuniform sampler2D texture1;\nuniform sampler2D texture2;\nuniform float time;\nvarying vec2 vUv;\n\nuniform vec3 diffuse;\nuniform vec3 fogColor;\nuniform float fogNear;\nuniform float fogFar;\n\nvoid main() {\n\n  //normal\n  vec3 diffuseTex1 = texture2D( texture1, vUv ).xyz;\n  vec3 normalizedNormal = normalize(diffuseTex1);\n  float DiffuseTerm = 1.0 - clamp(max(0.0, dot(normalizedNormal, vec3(0.0,1.0,0.0))), 0.0, 1.0);\n  DiffuseTerm = 1.0 - step(DiffuseTerm,0.97);\n\n\n  //depth\n  vec3 diffuseTex2 = texture2D( texture2, vUv ).xyz;\n\n  //diffuse\n  vec3 diffuseTex0 = texture2D( texture0, vUv ).xyz;\n  float grey = 1.0-(diffuseTex0.r + diffuseTex0.g + diffuseTex0.b)/3.0;\n  vec3 finalDiffuse = mix(diffuseTex0*vec3(0.8,0.9,0.8),vec3(0.8,0.9,0.8),diffuseTex2*diffuseTex2*0.2);\n\n\n\n  float thres = 1.0-step(0.1,diffuseTex1.b);\n  //vec4(diffuseTex1,1.0);\n  gl_FragColor = vec4( finalDiffuse,1.0-DiffuseTerm*(1.0-diffuseTex2.x));\n\n\n  //float depth = gl_FragCoord.z / gl_FragCoord.w;\n  //float fogFactor = smoothstep( fogNear, fogFar, depth );\n  //gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n\n}\n';
 });
 require.register("urbanjungle/static/app/index.js", function(exports, require, module){
 'use strict';
