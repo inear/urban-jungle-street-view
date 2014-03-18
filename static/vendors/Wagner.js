@@ -604,7 +604,7 @@ WAGNER.FreiChenEdgeDetectionPass.prototype = new WAGNER.Pass();
 WAGNER.DirtPass = function() {
 
 	this.blendPass = new WAGNER.BlendPass();
-	this.dirtTexture = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/textures/dirt8.jpg' );
+	this.dirtTexture = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/textures/dirt8.jpg' );
 
 }
 

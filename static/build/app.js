@@ -510,6 +510,8 @@ module.exports = PanoView;\n\
 \n\
 function PanoView(){\n\
 \n\
+  THREE.ImageUtils.crossOrigin = \"anonymous\";\n\
+\n\
   this.container = $('#app')[0];\n\
   this.winSize = {\n\
     width:0,\n\
@@ -561,20 +563,20 @@ function PanoView(){\n\
 \n\
   //this.grassBaseGeo = new THREE.SphereGeometry(2,4,4);\n\
   this.grassBaseGeo = new THREE.PlaneGeometry(2,2,1,1);\n\
-  var cracksTex = THREE.ImageUtils.loadTexture('https://s3.amazonaws.com/urbanjungle/images/cracks.png');\n\
+  var cracksTex = THREE.ImageUtils.loadTexture('http://s3.amazonaws.com/urbanjungle/images/cracks.png');\n\
 \n\
   this.grassBaseMaterial = new THREE.MeshLambertMaterial({ map: cracksTex,side: THREE.DoubleSide,alphaTest: 0.3, opacity:0.7,transparent:true});\n\
 \n\
-  var grassMap = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/grass_billboard.png' );\n\
+  var grassMap = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/grass_billboard.png' );\n\
   this.grassMaterial = new THREE.MeshLambertMaterial( { map: grassMap, alphaTest: 0.8, side: THREE.DoubleSide } );\n\
 \n\
-  var wallMossMap = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/wall-moss.png' );\n\
+  var wallMossMap = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/wall-moss.png' );\n\
   this.wallMossMaterial = new THREE.MeshBasicMaterial( { map: wallMossMap, transparent:true, depthWrite:false,  side: THREE.DoubleSide } );\n\
 \n\
-  var wallHangMap = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/leafs.png' );\n\
+  var wallHangMap = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/leafs.png' );\n\
   this.wallHangMaterial = new THREE.MeshLambertMaterial( { map: wallHangMap, alphaTest:0.9, side: THREE.DoubleSide } );\n\
 \n\
-  var climbingLeafTex = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/climbing.png' );\n\
+  var climbingLeafTex = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/climbing.png' );\n\
   this.climbingPlantLeafMaterial = new THREE.MeshLambertMaterial({map:climbingLeafTex,alphaTest:0.9, side: THREE.DoubleSide});\n\
   this.climbingPlantMaterial = new THREE.MeshLambertMaterial({color:0x3c8644,ambient:0x000000});\n\
 \n\
@@ -823,7 +825,7 @@ p.init3D = function(){\n\
   this.scene.add(this.foliageContainer);\n\
 \n\
   //ground\n\
-  var mossTile = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/moss-tile.jpg' );\n\
+  var mossTile = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/moss-tile.jpg' );\n\
   mossTile.repeat.set(200,200);\n\
   mossTile.wrapS = mossTile.wrapT = THREE.RepeatWrapping;\n\
   mossTile.needsUpdate = true;\n\
@@ -834,7 +836,7 @@ p.init3D = function(){\n\
   this.scene.add(this.ground);\n\
 \n\
   //tree\n\
-  var treeTex = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/tree.png' );\n\
+  var treeTex = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/tree.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(40,0,5);\n\
   tree.lookAt(this.camera.position.clone());\n\
@@ -843,7 +845,7 @@ p.init3D = function(){\n\
   this.tree1 = tree;\n\
 \n\
   //tree2\n\
-  var treeTex = THREE.ImageUtils.loadTexture( 'https://s3.amazonaws.com/urbanjungle/images/tree2.png' );\n\
+  var treeTex = THREE.ImageUtils.loadTexture( 'http://s3.amazonaws.com/urbanjungle/images/tree2.png' );\n\
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));\n\
   tree.position.set(-40,0,0);\n\
   tree.lookAt(this.camera.position.clone());\n\
