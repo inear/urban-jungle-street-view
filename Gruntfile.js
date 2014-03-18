@@ -207,7 +207,7 @@ module.exports = function(grunt) {
     'preprocess',
     'useminPrepare',
     'concat',
-    //'uglify',
+    'uglify',
     'usemin',
   ]);
 
