@@ -508,7 +508,8 @@ var DEG_TO_RAD = Math.PI/180;\n\
 var MAP_WIDTH = 512;\n\
 var MAP_HEIGHT = 256;\n\
 \n\
-var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'\n\
+var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/';\n\
+//var shaderPath = 'http://s3.amazonaws.com/urbanjungle/shaders/';\n\
 //var imageFolder = 'assets/images/'\n\
 \n\
 module.exports = PanoView;\n\
