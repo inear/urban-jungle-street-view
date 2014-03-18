@@ -12,4 +12,6 @@ sftp-config*.json
 .sass-cache
 
 static/build
+build/*
+prod/*
 
