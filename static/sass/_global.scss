@@ -8,14 +8,14 @@ $ui-font: 'Open Sans';
   cursor: grab;
   cursor: -webkit-grab;
   cursor: -moz-grab;
-  cursor: url(image-url('openhand.cur')), move;
+  cursor: url('https://s3.amazonaws.com/urbanjungle/images/openhand.cur'), move;
 }
 
 .grabbing {
   cursor: grab;
   cursor: -webkit-grabbing;
   cursor: -moz-grabbing;
-  cursor: url(image-url('closedhand.cur')), move;
+  cursor: url('https://s3.amazonaws.com/urbanjungle/images/closedhand.cur'), move;
 }
 
 .pointer {
