@@ -7,8 +7,8 @@ var DEG_TO_RAD = Math.PI/180;
 var MAP_WIDTH = 512;
 var MAP_HEIGHT = 256;
 
-//var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images/'
-var imageFolder = 'assets/images/'
+var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'
+//var imageFolder = 'assets/images/'
 
 module.exports = PanoView;
 

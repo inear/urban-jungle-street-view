@@ -1,5 +1,7 @@
 module.exports = Nav;
 
+var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'
+
 function Nav(){
 
   this.container = new THREE.Object3D();
@@ -31,7 +33,7 @@ p.createArrows = function(){
   arrowGeo.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI));
   arrowGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,5));
 
-  var tex = THREE.ImageUtils.loadTexture( 'assets/images/concrete.jpg' );
+  var tex = THREE.ImageUtils.loadTexture( imageFolder + 'concrete.jpg' );
   tex.repeat.x = tex.repeat.y = 0.1;
 
   markerGeo = new THREE.SphereGeometry(2,6,6);
@@ -41,7 +43,7 @@ p.createArrows = function(){
   var arrow = new THREE.Mesh( arrowGeo,new THREE.MeshLambertMaterial({map: tex, wireframe:false,color:0x666666,ambient:0x333333}));
   arrow.name = 'arrow';
   //shadows
-  shadowTex = THREE.ImageUtils.loadTexture( 'assets/images/arrow-shadow.png' );
+  shadowTex = THREE.ImageUtils.loadTexture( imageFolder + 'arrow-shadow.png' );
   var shadow = new THREE.Mesh( new THREE.PlaneGeometry(3,3,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));
   shadow.rotation.x = -Math.PI*0.5;
   shadow.rotation.z = Math.PI;

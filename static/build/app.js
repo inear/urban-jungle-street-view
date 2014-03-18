@@ -410,6 +410,8 @@ Emitter.prototype.hasListeners = function(event){\n\
 require.register("streetview/nav.js", Function("exports, require, module",
 "module.exports = Nav;\n\
 \n\
+var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'\n\
+\n\
 function Nav(){\n\
 \n\
   this.container = new THREE.Object3D();\n\
@@ -441,7 +443,7 @@ p.createArrows = function(){\n\
   arrowGeo.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI));\n\
   arrowGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,5));\n\
 \n\
-  var tex = THREE.ImageUtils.loadTexture( 'assets/images/concrete.jpg' );\n\
+  var tex = THREE.ImageUtils.loadTexture( imageFolder + 'concrete.jpg' );\n\
   tex.repeat.x = tex.repeat.y = 0.1;\n\
 \n\
   markerGeo = new THREE.SphereGeometry(2,6,6);\n\
@@ -451,7 +453,7 @@ p.createArrows = function(){\n\
   var arrow = new THREE.Mesh( arrowGeo,new THREE.MeshLambertMaterial({map: tex, wireframe:false,color:0x666666,ambient:0x333333}));\n\
   arrow.name = 'arrow';\n\
   //shadows\n\
-  shadowTex = THREE.ImageUtils.loadTexture( 'assets/images/arrow-shadow.png' );\n\
+  shadowTex = THREE.ImageUtils.loadTexture( imageFolder + 'arrow-shadow.png' );\n\
   var shadow = new THREE.Mesh( new THREE.PlaneGeometry(3,3,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));\n\
   shadow.rotation.x = -Math.PI*0.5;\n\
   shadow.rotation.z = Math.PI;\n\
@@ -506,8 +508,8 @@ var DEG_TO_RAD = Math.PI/180;\n\
 var MAP_WIDTH = 512;\n\
 var MAP_HEIGHT = 256;\n\
 \n\
-//var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images/'\n\
-var imageFolder = 'assets/images/'\n\
+var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'\n\
+//var imageFolder = 'assets/images/'\n\
 \n\
 module.exports = PanoView;\n\
 \n\
